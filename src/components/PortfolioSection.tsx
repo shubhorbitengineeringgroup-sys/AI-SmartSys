@@ -11,10 +11,12 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
-import inventoryImg from "@/assets/images/inventory.png";
-import expenseImg from "@/assets/images/expense_flow.png";
-import scadaImg from "@/assets/images/beohari_scada.png";
-import orbitImg from "@/assets/images/orbit_water.png";
+import inventoryImg from "@/assets/images/inventory.jpeg";
+import expenseImg from "@/assets/images/expense_flow.jpeg";
+import scadaImg from "@/assets/images/burhar-scada.jpeg";
+import orbitImg from "@/assets/images/orbit_water.jpeg";
+import astrologyImg from "@/assets/images/astrology.jpeg";
+import empMonitoringImg from "@/assets/images/emp-monitoring-system.jpeg";
 
 interface Project {
   title: string;
@@ -25,6 +27,7 @@ interface Project {
   overview: string;
   features: string[];
   technologies: { name: string; icon: any }[];
+  containImage?: boolean;
 }
 
 const projects: Project[] = [
@@ -71,7 +74,7 @@ const projects: Project[] = [
     ]
   },
   {
-    title: "SCADA Monitoring System",
+    title: "Burhar SCADA Monitoring System",
     desc: "Industrial SCADA monitoring system designed for managing multiple water treatment sites with real-time sensor monitoring and centralized control.",
     image: scadaImg,
     tags: ["Industrial", "IoT", "Real-time"],
@@ -95,6 +98,7 @@ const projects: Project[] = [
     title: "Orbit Engineering Solutions Website",
     desc: "A modern corporate website developed for Orbit Engineering Solutions to showcase services, solutions and water treatment technologies.",
     image: orbitImg,
+    containImage: true,
     tags: ["Web Design", "Responsive", "Corporate"],
     gradient: "from-amber-400/50 to-orange-500/50",
     overview: "The digital front for Orbit Engineering Solutions, showcasing their expertise in water treatment and industrial engineering. Built with performance and SEO in mind.",
@@ -110,6 +114,49 @@ const projects: Project[] = [
       { name: "Framer Motion", icon: Code },
       { name: "GSAP", icon: Code },
       { name: "Vercel", icon: Globe }
+    ]
+  },
+  {
+    title: "Employee Monitoring System",
+    desc: "A tracking and productivity tool that helps organizations monitor employee activities, track time, and analyze performance.",
+    image: empMonitoringImg,
+    containImage: true,
+    tags: ["HR", "Productivity", "Enterprise"],
+    gradient: "from-blue-500/50 to-cyan-500/50",
+    overview: "A robust enterprise solution designed to enhance productivity by monitoring work hours, application usage, and overall employee engagement.",
+    features: [
+      "Time tracking and attendance",
+      "Real-time activity monitoring",
+      "Detailed productivity analytics",
+      "Screenshot capture capabilities",
+      "Role-based access control and reporting"
+    ],
+    technologies: [
+      { name: "React", icon: Layout },
+      { name: "Node.js", icon: Server },
+      { name: "PostgreSQL", icon: Database },
+      { name: "Tailwind CSS", icon: Code }
+    ]
+  },
+  {
+    title: "Astrology App",
+    desc: "A personalized astrology application providing daily horoscopes, natal charts, and deep astrological insights.",
+    image: astrologyImg,
+    containImage: true,
+    tags: ["Mobile App", "Astrology", "Lifestyle"],
+    gradient: "from-indigo-500/50 to-purple-500/50",
+    overview: "An intuitive application designed to offer users detailed astrological profiles, daily predictions, and compatibility charts based on precise planetary alignments.",
+    features: [
+      "Personalized daily horoscopes",
+      "Detailed birth chart calculations",
+      "Zodiac compatibility matching",
+      "Astrological transit updates",
+      "Personalized readings and reports"
+    ],
+    technologies: [
+      { name: "React Native", icon: Layout },
+      { name: "Node.js", icon: Server },
+      { name: "MongoDB", icon: Database }
     ]
   },
 ];
@@ -137,12 +184,12 @@ const PortfolioSection = () => {
                 }`}
               style={getDelay(i)}
             >
-              <div className="relative aspect-video overflow-hidden bg-muted/20">
+              <div className="relative aspect-video overflow-hidden bg-muted/20 flex items-center justify-center p-2">
                 <img
                   src={p.image}
                   alt={p.title}
                   loading="lazy"
-                  className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+                  className={`w-full h-full transition-transform duration-700 group-hover:scale-105 ${p.containImage ? 'object-contain' : 'object-cover object-top'}`}
                 />
                 <div className={`absolute inset-0 bg-gradient-to-br ${p.gradient} opacity-10`} />
                 <div className="absolute inset-0 bg-background/10 mix-blend-overlay" />
