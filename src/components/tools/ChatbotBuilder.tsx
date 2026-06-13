@@ -21,17 +21,17 @@ const ChatbotBuilder = () => {
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                        <div className="glass border-white/5 p-4 rounded-2xl flex flex-col gap-2">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex flex-col gap-2">
                             <MessageSquare size={20} className="text-blue-500" />
                             <h3 className="font-heading font-semibold text-sm">Natural Language</h3>
                             <p className="text-xs text-muted-foreground">Advanced NLP understanding for highly natural conversation flows.</p>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex flex-col gap-2">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex flex-col gap-2">
                             <Wand2 size={20} className="text-blue-500" />
                             <h3 className="font-heading font-semibold text-sm">No-Code Setup</h3>
                             <p className="text-xs text-muted-foreground">Easily train and deploy bots completely code-free.</p>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex flex-col gap-2">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex flex-col gap-2">
                             <Zap size={20} className="text-blue-500" />
                             <h3 className="font-heading font-semibold text-sm">Instant Integration</h3>
                             <p className="text-xs text-muted-foreground">Seamlessly connect with your existing platforms and workflows.</p>
@@ -40,7 +40,7 @@ const ChatbotBuilder = () => {
                 </div>
             </div>
 
-            <div className="glass border-white/5 rounded-3xl overflow-hidden p-6 bg-black/20 text-center flex flex-col items-center justify-center min-h-[300px]">
+            <div className="glass border-border/40 rounded-3xl overflow-hidden p-6 bg-muted/10 text-center flex flex-col items-center justify-center min-h-[300px]">
                 <div className="w-16 h-16 rounded-full bg-blue-500/20 flex items-center justify-center mb-4">
                     <Bot size={32} className="text-blue-400" />
                 </div>

@@ -1,7 +1,9 @@
 import { useEffect, lazy, Suspense } from "react";
+import { motion, useScroll, useSpring } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
+import NeuralCanvas from "@/components/NeuralCanvas";
 
 const AboutSection = lazy(() => import("@/components/AboutSection"));
 const ServicesSection = lazy(() => import("@/components/ServicesSection"));
@@ -14,6 +16,13 @@ const FAQSection = lazy(() => import("@/components/FAQSection"));
 const ContactSection = lazy(() => import("@/components/ContactSection"));
 
 const Index = () => {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
@@ -49,7 +58,13 @@ const Index = () => {
   const Fallback = () => <div className="min-h-[200px] flex items-center justify-center text-muted-foreground">Loading section...</div>;
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative bg-background text-foreground overflow-x-hidden">
+      {/* Scroll Progress Indicator */}
+      <motion.div className="scroll-progress-bar" style={{ scaleX }} />
+
+      {/* Interactive Neural background */}
+      <NeuralCanvas />
+
       <Navbar />
       <div id="home"><HeroSection /></div>
       
@@ -71,3 +86,4 @@ const Index = () => {
 };
 
 export default Index;
+

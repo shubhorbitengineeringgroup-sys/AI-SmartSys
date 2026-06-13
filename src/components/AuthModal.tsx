@@ -48,7 +48,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[420px] glass border-white/10 bg-background/90 backdrop-blur-2xl p-0 overflow-hidden rounded-3xl animate-in fade-in zoom-in duration-300">
+            <DialogContent className="sm:max-w-[420px] glass border-border/50 bg-background/90 backdrop-blur-2xl p-0 overflow-hidden rounded-3xl animate-in fade-in zoom-in duration-300">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-primary" />
 
                 <div className="p-8">
@@ -82,7 +82,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                         <div className="space-y-6">
                             <Button
                                 variant="outline"
-                                className="w-full h-12 glass border-white/5 hover:bg-white/5 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300"
+                                className="w-full h-12 glass border-border/40 hover:bg-muted/50 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300"
                                 onClick={handleGoogleAuth}
                             >
                                 <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -108,10 +108,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
 
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-white/10" />
+                                    <span className="w-full border-t border-border/40" />
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-[#0f172a] px-3 text-muted-foreground font-medium">Or Use Email</span>
+                                    <span className="bg-background px-3 text-muted-foreground font-medium">Or Use Email</span>
                                 </div>
                             </div>
 
@@ -124,7 +124,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                             placeholder="Full Name"
                                             value={name}
                                             onChange={(e) => setName(e.target.value)}
-                                            className="bg-muted/30 border-white/5 h-12 pl-12 rounded-2xl focus:border-primary/50"
+                                            className="bg-muted/30 border-border/50 h-12 pl-12 rounded-2xl focus:border-primary/50"
                                             required={activeTab === "signup"}
                                         />
                                     </div>
@@ -136,7 +136,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                         placeholder="Email Address"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="bg-muted/30 border-white/5 h-12 pl-12 rounded-2xl focus:border-primary/50"
+                                        className="bg-muted/30 border-border/50 h-12 pl-12 rounded-2xl focus:border-primary/50"
                                         required
                                     />
                                 </div>
@@ -145,7 +145,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="bg-muted/30 border-white/5 h-12 rounded-2xl"
+                                    className="bg-muted/30 border-border/50 h-12 rounded-2xl"
                                     required
                                 />
                                 <Button type="submit" className="w-full h-12 text-base font-semibold bg-gradient-button hover:opacity-90 rounded-2xl shadow-lg shadow-primary/20 transition-all duration-300">

@@ -21,7 +21,7 @@ const ResumeBuilder = () => {
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
-                        <div className="glass border-white/5 p-4 rounded-2xl flex items-center gap-4">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
                                 <Briefcase size={18} />
                             </div>
@@ -30,7 +30,7 @@ const ResumeBuilder = () => {
                                 <p className="text-xs text-muted-foreground">AI automatically rewrites job duties into compelling bullet points.</p>
                             </div>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex items-center gap-4">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
                                 <Code size={18} />
                             </div>
@@ -39,7 +39,7 @@ const ResumeBuilder = () => {
                                 <p className="text-xs text-muted-foreground">Ensures formatting and keywords pass applicant tracking systems.</p>
                             </div>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex items-center gap-4">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
                                 <Sparkles size={18} />
                             </div>
@@ -48,7 +48,7 @@ const ResumeBuilder = () => {
                                 <p className="text-xs text-muted-foreground">Generates powerful professional summaries tailored to your profile.</p>
                             </div>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex items-center gap-4">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex items-center gap-4">
                             <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
                                 <FileText size={18} />
                             </div>
@@ -61,7 +61,7 @@ const ResumeBuilder = () => {
                 </div>
             </div>
 
-            <div className="glass border-white/5 rounded-3xl overflow-hidden p-6 bg-black/20 text-center flex flex-col items-center justify-center min-h-[300px]">
+            <div className="glass border-border/40 rounded-3xl overflow-hidden p-6 bg-muted/10 text-center flex flex-col items-center justify-center min-h-[300px]">
                 <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center mb-4">
                     <FileText size={32} className="text-purple-400" />
                 </div>

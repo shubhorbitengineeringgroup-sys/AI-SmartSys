@@ -1,17 +1,20 @@
 import { useState, useEffect } from "react";
 import { Menu, X, Layout, LogOut, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import aiLogo from "@/assets/images/smartsys-logo.jpg";
+import aiLogo from "@/assets/ai-smartsys-logo.png";
+import aiLogoDark from "@/assets/ai-smartsys-logo-dark.png";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import { useTheme } from "@/context/ThemeContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
   { label: "Services", href: "#services" },
   { label: "Products", href: "#products" },
+  { label: "Process", href: "#process" },
   { label: "Portfolio", href: "#portfolio" },
   { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
@@ -25,6 +28,8 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [hoveredHref, setHoveredHref] = useState<string | null>(null);
+  const logoSrc = theme === "dark" ? aiLogoDark : aiLogo;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,7 +43,7 @@ const Navbar = () => {
       for (const id of sections) {
         if (!id) continue;
         const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= 120) {
+        if (el && el.getBoundingClientRect().top <= 140) {
           current = id;
         }
       }
@@ -48,7 +53,7 @@ const Navbar = () => {
     handleScroll(); // Initial check
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [window.location.pathname]);
+  }, []);
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
@@ -58,119 +63,234 @@ const Navbar = () => {
     }
   };
 
+  const checkActive = (href: string) => {
+    if (activeSection === href) return true;
+    if (href.includes("#") && activeSection === "#" + href.split("#")[1]) return true;
+    return false;
+  };
+
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-        ? "bg-background/10 backdrop-blur-2xl border-b border-white/10 shadow-lg shadow-background/40"
-        : "bg-transparent"
-        }`}
+    <div 
+      className={`fixed left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ${
+        scrolled ? "top-3 sm:top-5" : "top-0 sm:top-2"
+      }`}
     >
-      <div className="container mx-auto flex items-center justify-between h-24 px-4 transition-all duration-300">
-        <Link to="/" className="flex items-center gap-4 group">
-          <div className="relative h-20 w-20 sm:h-24 sm:w-24 overflow-hidden rounded-3xl border-2 border-primary/30 shadow-2xl group-hover:scale-110 transition-all duration-600 ease-out">
-            <img src={aiLogo} alt="AI SmartSyS Logo" className="h-full w-full object-cover scale-110 group-hover:scale-125 transition-transform duration-1000" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-          </div>
-          <div className="flex flex-col justify-center">
-            <span className="text-3xl sm:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary via-foreground to-primary/90 tracking-tighter leading-none">
-              AI SmartSyS
-            </span>
-            <span className="text-[10px] sm:text-[12px] font-bold text-primary/70 tracking-[0.3em] uppercase mt-1 hidden xs:block">
-              Intelligent Solutions
-            </span>
-          </div>
-        </Link>
+      <motion.div
+        layout
+        className={`w-full flex flex-col justify-center transition-all duration-500 border bg-card/65 backdrop-blur-2xl ${
+          scrolled 
+            ? "max-w-4xl rounded-2xl sm:rounded-full px-5 py-2.5 border-primary/30 shadow-[0_12px_40px_-12px_rgba(6,182,212,0.25)]" 
+            : "max-w-7xl rounded-3xl sm:rounded-[2.5rem] px-6 py-4 border-border/50 shadow-2xl"
+        }`}
+      >
+        {/* Main Navbar Row */}
+        <div className="flex items-center justify-between w-full">
+          
+          {/* Brand Logo Only */}
+          <Link to="/" className="flex items-center group shrink-0">
+            <img 
+              src={logoSrc} 
+              alt="AI SmartSyS Logo" 
+              className={`transition-all duration-500 ease-in-out object-contain group-hover:scale-105 shrink-0 ${
+                scrolled ? "h-10 sm:h-12" : "h-14 sm:h-16"
+              }`}
+            />
+          </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1 p-1 rounded-full bg-muted/40 backdrop-blur-sm border border-border/50">
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className={`relative px-4 py-2 text-sm font-medium rounded-full transition-all duration-300 ${activeSection === link.href || (link.href.includes("#") && activeSection === "#" + link.href.split("#")[1])
-                ? "bg-gradient-nav-pill text-secondary-foreground shadow-md shadow-primary/25 scale-[1.02]"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                }`}
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
+          {/* Desktop Navigation links - Shared Layout Transition */}
+          <div 
+            className="hidden md:flex items-center gap-1.5 p-1.5 rounded-full bg-muted/40 backdrop-blur-sm border border-border/50 relative"
+            onMouseLeave={() => setHoveredHref(null)}
+          >
+            {navLinks.map((link) => {
+              const isActive = checkActive(link.href);
+              const isHovered = hoveredHref === link.href;
 
-        <div className="hidden md:flex items-center gap-3">
-          <Button size="icon" variant="ghost" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="rounded-full hover:bg-muted/50 text-foreground transition-all duration-300">
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </Button>
-          {isAuthenticated ? (
-            <>
-              <Button size="sm" onClick={() => navigate("/dashboard")} className="rounded-full px-6 bg-muted/50 text-foreground hover:bg-muted border border-white/5 transition-all duration-300">
-                <Layout size={16} className="mr-2" /> Dashboard
-              </Button>
-              <Button size="icon" variant="ghost" onClick={logout} className="rounded-full hover:bg-red-500/10 hover:text-red-400">
-                <LogOut size={18} />
-              </Button>
-            </>
-          ) : (
-            <Button size="sm" onClick={handleAuthAction} className="rounded-full px-6 bg-gradient-nav-pill text-secondary-foreground shadow-md shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all duration-300">
-              Get Started
-            </Button>
-          )}
-        </div>
-
-        {/* Mobile toggle */}
-        <div className="flex justify-end items-center gap-2 md:hidden">
-          <Button size="icon" variant="ghost" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="rounded-full hover:bg-muted/50 text-foreground transition-all duration-300">
-            {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-          </Button>
-          <button className="text-foreground p-2 rounded-lg hover:bg-muted/50 transition-colors" onClick={() => setIsOpen(!isOpen)}>
-            {isOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      {isOpen && (
-        <div className="md:hidden bg-background/95 backdrop-blur-xl border-t border-border animate-fade-in-up">
-          <div className="container mx-auto px-4 py-5 flex flex-col gap-1">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setIsOpen(false)}
-                className={`px-4 py-3 text-sm font-medium rounded-xl transition-all duration-300 ${activeSection === link.href || (link.href.includes("#") && activeSection === "#" + link.href.split("#")[1])
-                  ? "bg-gradient-nav-pill text-secondary-foreground shadow-md"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              return (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onMouseEnter={() => setHoveredHref(link.href)}
+                  className={`relative px-4 py-2.5 text-xs lg:text-sm font-bold uppercase tracking-wider transition-colors duration-300 select-none z-10 ${
+                    isActive 
+                      ? "text-primary-foreground font-black" 
+                      : "text-muted-foreground hover:text-foreground"
                   }`}
-              >
-                {link.label}
-              </a>
-            ))}
-            <div className="pt-4 border-t border-white/5 mt-2 flex flex-col gap-2">
-              {isAuthenticated ? (
-                <>
-                  <Button size="sm" onClick={() => { setIsOpen(false); navigate("/dashboard"); }} className="w-full rounded-xl bg-muted/50">
-                    Dashboard
-                  </Button>
-                  <Button size="sm" onClick={() => { setIsOpen(false); logout(); }} variant="ghost" className="w-full rounded-xl text-red-400">
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <Button size="sm" onClick={handleAuthAction} className="w-full rounded-xl bg-gradient-primary">
-                  Get Started
+                >
+                  {/* Active Indicator: Slides from tab to tab */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="navbar-active-pill"
+                      className="absolute inset-0 bg-gradient-nav-pill rounded-full shadow-lg shadow-primary/20 z-[-2]"
+                      transition={{ type: "spring", stiffness: 350, damping: 28 }}
+                    />
+                  )}
+
+                  {/* Hover Indicator: Tactical magnetic background capsule */}
+                  {isHovered && !isActive && (
+                    <motion.div
+                      layoutId="navbar-hover-pill"
+                      className="absolute inset-0 bg-muted/65 rounded-full z-[-1] border border-border/20"
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  
+                  {link.label}
+                </a>
+              );
+            })}
+          </div>
+
+          {/* Desktop Action Buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")} 
+              className="rounded-full hover:bg-muted/50 text-foreground transition-all duration-300"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </Button>
+            {isAuthenticated ? (
+              <>
+                <Button 
+                  size="sm" 
+                  onClick={() => navigate("/dashboard")} 
+                  className="rounded-full px-6 bg-muted/50 text-foreground hover:bg-muted border border-border/40 transition-all duration-300"
+                >
+                  <Layout size={16} className="mr-2" /> Dashboard
                 </Button>
-              )}
-            </div>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  onClick={logout} 
+                  className="rounded-full hover:bg-red-500/10 hover:text-red-400"
+                >
+                  <LogOut size={18} />
+                </Button>
+              </>
+            ) : (
+              <Button 
+                size="sm" 
+                onClick={handleAuthAction} 
+                className="rounded-full px-6 bg-gradient-nav-pill text-secondary-foreground shadow-md shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all duration-300"
+              >
+                Get Started
+              </Button>
+            )}
+          </div>
+
+          {/* Mobile toggle */}
+          <div className="flex justify-end items-center gap-2 md:hidden">
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")} 
+              className="rounded-full hover:bg-muted/50 text-foreground transition-all duration-300"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </Button>
+            <button 
+              className="text-foreground p-2 rounded-lg hover:bg-muted/50 transition-colors" 
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              {isOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
-      )}
+
+        {/* Mobile menu - Expands inside the dynamic island */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28 }}
+              className="w-full overflow-hidden"
+            >
+              <motion.div 
+                initial="closed"
+                animate="open"
+                exit="closed"
+                variants={{
+                  open: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
+                  closed: { transition: { staggerChildren: 0.03, staggerDirection: -1 } }
+                }}
+                className="pt-6 pb-2 flex flex-col gap-2 w-full border-t border-border/40 mt-4"
+              >
+                {navLinks.map((link) => {
+                  const isActive = checkActive(link.href);
+                  return (
+                    <motion.a
+                      key={link.href}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      variants={{
+                        open: { y: 0, opacity: 1, scale: 1 },
+                        closed: { y: -10, opacity: 0, scale: 0.95 }
+                      }}
+                      transition={{ type: "spring", stiffness: 350, damping: 24 }}
+                      className={`relative px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-between border ${
+                        isActive
+                          ? "bg-gradient-nav-pill text-primary-foreground border-transparent shadow-md shadow-primary/10"
+                          : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
+                      }`}
+                    >
+                      <span>{link.label}</span>
+                      {isActive && <span className="w-1 h-1 rounded-full bg-primary-foreground animate-ping" />}
+                    </motion.a>
+                  );
+                })}
+                
+                <motion.div 
+                  variants={{
+                    open: { y: 0, opacity: 1 },
+                    closed: { y: -10, opacity: 0 }
+                  }}
+                  className="pt-4 border-t border-border/30 mt-3 flex flex-col gap-2 w-full"
+                >
+                  {isAuthenticated ? (
+                    <>
+                      <Button 
+                        size="sm" 
+                        onClick={() => { setIsOpen(false); navigate("/dashboard"); }} 
+                        className="w-full rounded-xl bg-muted/50 py-4 text-xs font-bold uppercase tracking-widest border border-border/40 hover:bg-muted"
+                      >
+                        Dashboard
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        onClick={() => { setIsOpen(false); logout(); }} 
+                        variant="ghost" 
+                        className="w-full rounded-xl text-red-400 py-4 text-xs font-bold uppercase tracking-widest hover:bg-red-500/5"
+                      >
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      size="sm" 
+                      onClick={() => { setIsOpen(false); handleAuthAction(); }} 
+                      className="w-full rounded-xl bg-gradient-nav-pill text-secondary-foreground py-4 text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/10"
+                    >
+                      Get Started
+                    </Button>
+                  )}
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+      </motion.div>
 
       <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
         onSuccess={() => navigate("/dashboard")}
       />
-    </nav>
+    </div>
   );
 };
 

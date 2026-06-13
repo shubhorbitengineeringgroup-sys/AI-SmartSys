@@ -1,11 +1,14 @@
 import { Github, Linkedin, Twitter, Instagram } from "lucide-react";
-import aiLogo from "@/assets/images/smartsys-logo.jpg";
+import aiLogo from "@/assets/ai-smartsys-logo.png";
+import aiLogoDark from "@/assets/ai-smartsys-logo-dark.png";
+import { useTheme } from "@/context/ThemeContext";
 
 const quickLinks = [
   { name: "Home", href: "/#home" },
   { name: "About", href: "/#about" },
   { name: "Services", href: "/#services" },
   { name: "Products", href: "/#products" },
+  { name: "Process", href: "/#process" },
   { name: "Portfolio", href: "/#portfolio" },
   { name: "FAQ", href: "/#faq" },
   { name: "Contact", href: "/#contact" },
@@ -19,33 +22,31 @@ const serviceLinks = [
   { name: "Mobile Apps", ref: "app-development" }
 ];
 
-const Footer = () => (
-  <footer className="relative border-t border-border pt-20 pb-8 overflow-hidden bg-background">
-    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/5" />
+const Footer = () => {
+  const { theme } = useTheme();
+  const logoSrc = theme === "dark" ? aiLogoDark : aiLogo;
 
-    {/* Decorative blur orb */}
-    <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 blur-[100px] rounded-full" />
+  return (
+    <footer className="relative border-t border-border pt-20 pb-8 overflow-hidden bg-background">
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-primary/5" />
 
-    <div className="container mx-auto px-4 relative z-10">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
-        {/* Brand */}
-        <div className="lg:col-span-2">
-          <div className="flex items-center gap-6 mb-8">
-            <div className="relative h-24 w-24 sm:h-32 sm:w-32 overflow-hidden rounded-[2.5rem] border-2 border-primary/20 shadow-2xl skew-y-0 hover:skew-y-2 transition-all duration-700">
-              <img src={aiLogo} alt="AI SmartSyS" className="h-full w-full object-cover scale-110" />
+      {/* Decorative blur orb */}
+      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 blur-[100px] rounded-full" />
+
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+          {/* Brand */}
+          <div className="lg:col-span-2">
+            <div className="flex flex-col items-start gap-4 mb-8">
+              <img 
+                src={logoSrc} 
+                alt="AI SmartSyS" 
+                className="h-20 sm:h-24 object-contain transition-transform duration-700 hover:scale-105" 
+              />
             </div>
-            <div className="flex flex-col">
-              <span className="text-4xl sm:text-5xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary via-foreground to-primary/80 tracking-tighter">
-                AI SmartSyS
-              </span>
-              <span className="text-xs sm:text-sm font-bold text-primary tracking-[0.4em] uppercase opacity-80">
-                Future of Intelligence
-              </span>
-            </div>
-          </div>
-          <p className="text-muted-foreground text-sm leading-relaxed mb-6">
-            Empowering businesses with intelligent AI solutions for a smarter, more connected future. We bridge the gap between human intelligence and machine efficiency.
-          </p>
+            <p className="text-muted-foreground text-sm leading-relaxed mb-6">
+              Empowering businesses with intelligent AI solutions for a smarter, more connected future. We bridge the gap between human intelligence and machine efficiency.
+            </p>
           <div className="flex gap-4">
             {[Twitter, Linkedin, Github, Instagram].map((Icon, i) => (
               <a key={i} href="#" className="w-10 h-10 rounded-xl glass border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent/20 transition-all duration-300 hover:scale-110">
@@ -118,6 +119,7 @@ const Footer = () => (
       </div>
     </div>
   </footer>
-);
+  );
+};
 
 export default Footer;

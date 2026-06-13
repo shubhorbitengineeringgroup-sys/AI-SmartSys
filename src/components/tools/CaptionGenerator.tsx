@@ -21,17 +21,17 @@ const CaptionGenerator = () => {
                     </p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                        <div className="glass border-white/5 p-4 rounded-2xl flex flex-col gap-2">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex flex-col gap-2">
                             <Sparkles size={20} className="text-primary" />
                             <h3 className="font-heading font-semibold text-sm">Context Aware</h3>
                             <p className="text-xs text-muted-foreground">Understands your topic and generates relevant, creative content.</p>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex flex-col gap-2">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex flex-col gap-2">
                             <Hash size={20} className="text-primary" />
                             <h3 className="font-heading font-semibold text-sm">Smart Formatting</h3>
                             <p className="text-xs text-muted-foreground">Automatically includes appropriate hashtags, emojis, and styling.</p>
                         </div>
-                        <div className="glass border-white/5 p-4 rounded-2xl flex flex-col gap-2">
+                        <div className="glass border-border/40 p-4 rounded-2xl flex flex-col gap-2">
                             <TrendingUp size={20} className="text-primary" />
                             <h3 className="font-heading font-semibold text-sm">Engagement Focused</h3>
                             <p className="text-xs text-muted-foreground">Crafted to maximize interactions and reach across platforms.</p>
@@ -40,7 +40,7 @@ const CaptionGenerator = () => {
                 </div>
             </div>
 
-            <div className="glass border-white/5 rounded-3xl overflow-hidden p-6 bg-black/20 text-center flex flex-col items-center justify-center min-h-[300px]">
+            <div className="glass border-border/40 rounded-3xl overflow-hidden p-6 bg-muted/10 text-center flex flex-col items-center justify-center min-h-[300px]">
                 <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                     <Brain size={32} className="text-primary" />
                 </div>

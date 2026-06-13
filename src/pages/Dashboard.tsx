@@ -69,7 +69,7 @@ const Dashboard = () => {
                     </div>
 
                     {!activeTool && (
-                        <Button variant="outline" onClick={logout} className="glass border-white/5 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20">
+                        <Button variant="outline" onClick={logout} className="glass border-border/40 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20">
                             <LogOut size={16} className="mr-2" /> Logout
                         </Button>
                     )}
@@ -85,7 +85,7 @@ const Dashboard = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {userTools.map((tool) => (
                                     <div key={tool.id} className="premium-card p-8 group cursor-pointer hover:-translate-y-2 transition-all duration-300">
-                                        <div className={`w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-6 border border-white/5 group-hover:bg-primary/10 transition-colors ${tool.color}`}>
+                                        <div className={`w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-6 border border-border/40 group-hover:bg-primary/10 transition-colors ${tool.color}`}>
                                             <tool.icon size={28} />
                                         </div>
                                         <h3 className="text-xl font-heading font-semibold mb-2">{tool.title}</h3>
@@ -110,7 +110,7 @@ const Dashboard = () => {
                                     { label: "Tokens Used", value: "45K", icon: Layout },
                                     { label: "Saved Items", value: "12", icon: Bot },
                                 ].map((stat) => (
-                                    <div key={stat.label} className="glass border-white/5 p-6 rounded-2xl flex items-center gap-4">
+                                    <div key={stat.label} className="glass border-border/40 p-6 rounded-2xl flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-xl bg-primary/5 flex items-center justify-center text-primary">
                                             <stat.icon size={20} />
                                         </div>
