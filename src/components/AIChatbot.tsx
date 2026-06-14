@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 
 interface Message {
   id: string;
@@ -26,16 +27,18 @@ type TerminalTheme = "cyber-blue" | "matrix" | "holo-pink";
 // Theme configuration palette mapping
 const THEMES = {
   "cyber-blue": {
-    bg: "bg-slate-950/80",
+    bgDark: "bg-slate-950/85 backdrop-blur-2xl border-white/10 text-slate-100",
+    bgLight: "bg-white/80 backdrop-blur-2xl border-slate-200 text-slate-800",
     border: "border-white/10",
     accent: "from-cyan-500 via-indigo-500 to-purple-600",
     accentGlow: "shadow-[0_8px_32px_rgba(6,182,212,0.4)]",
-    accentLight: "from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-200 border-cyan-500/40 hover:border-cyan-400",
-    textAccent: "text-cyan-400",
-    textAccentLight: "text-cyan-300",
+    accentLight: "from-cyan-500/10 to-indigo-500/10 hover:from-cyan-500/20 hover:to-indigo-500/20 text-cyan-700 dark:text-cyan-200 border-cyan-500/25 hover:border-cyan-400",
+    textAccent: "text-cyan-600 dark:text-cyan-400",
+    textAccentLight: "text-cyan-500 dark:text-cyan-300",
     glow: "shadow-[0_0_50px_rgba(6,182,212,0.15)]",
     bubbleUser: "bg-gradient-to-br from-cyan-500 to-indigo-600 text-white border-cyan-400/40 shadow-[0_4px_20px_rgba(6,182,212,0.3)]",
-    bubbleBot: "bg-slate-900/80 border border-white/5 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
+    bubbleBotDark: "bg-slate-900/80 border border-white/5 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
+    bubbleBotLight: "bg-slate-100 border border-slate-200/60 text-slate-800 shadow-[0_4px_15px_rgba(0,0,0,0.05)]",
     orbs: ["bg-cyan-500/20", "bg-purple-500/20"],
     headerBorder: "via-cyan-500/50",
     faceGlow: "drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]",
@@ -43,16 +46,18 @@ const THEMES = {
     pulse: "bg-cyan-500"
   },
   "matrix": {
-    bg: "bg-black/95",
+    bgDark: "bg-black/95 backdrop-blur-2xl border-emerald-500/20 text-emerald-400",
+    bgLight: "bg-emerald-950/10 backdrop-blur-2xl border-emerald-500/30 text-emerald-950",
     border: "border-emerald-500/20",
     accent: "from-emerald-600 via-green-600 to-emerald-950",
     accentGlow: "shadow-[0_8px_32px_rgba(16,185,129,0.4)]",
-    accentLight: "from-emerald-500/20 to-green-500/20 hover:from-emerald-500/30 hover:to-green-500/30 text-emerald-200 border-emerald-500/40 hover:border-emerald-400",
-    textAccent: "text-emerald-400",
-    textAccentLight: "text-emerald-300",
+    accentLight: "from-emerald-500/15 to-green-500/15 hover:from-emerald-500/25 hover:to-green-500/25 text-emerald-700 dark:text-emerald-200 border-emerald-500/25 hover:border-emerald-400",
+    textAccent: "text-emerald-600 dark:text-emerald-400",
+    textAccentLight: "text-emerald-500 dark:text-emerald-300",
     glow: "shadow-[0_0_55px_rgba(16,185,129,0.15)]",
     bubbleUser: "bg-gradient-to-br from-emerald-600 to-green-800 text-green-100 border-emerald-500/40 font-mono shadow-[0_4px_20px_rgba(16,185,129,0.2)]",
-    bubbleBot: "bg-black border border-emerald-500/20 text-emerald-400 font-mono shadow-[0_4px_20px_rgba(0,0,0,0.5)]",
+    bubbleBotDark: "bg-black border border-emerald-500/20 text-emerald-400 font-mono shadow-[0_4px_20px_rgba(0,0,0,0.5)]",
+    bubbleBotLight: "bg-emerald-50 border border-emerald-500/20 text-emerald-900 font-mono shadow-[0_4px_15px_rgba(0,0,0,0.05)]",
     orbs: ["bg-emerald-500/10", "bg-green-600/10"],
     headerBorder: "via-emerald-500/50",
     faceGlow: "drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]",
@@ -60,16 +65,18 @@ const THEMES = {
     pulse: "bg-emerald-500"
   },
   "holo-pink": {
-    bg: "bg-neutral-950/85",
+    bgDark: "bg-neutral-950/85 backdrop-blur-2xl border-pink-500/10 text-neutral-200",
+    bgLight: "bg-pink-50/10 backdrop-blur-2xl border-pink-500/20 text-neutral-800",
     border: "border-pink-500/10",
     accent: "from-pink-500 via-rose-500 to-indigo-600",
     accentGlow: "shadow-[0_8px_32px_rgba(236,72,153,0.4)]",
-    accentLight: "from-pink-500/20 to-rose-500/20 hover:from-pink-500/30 hover:to-rose-500/30 text-pink-200 border-pink-500/40 hover:border-pink-400",
-    textAccent: "text-pink-400",
-    textAccentLight: "text-pink-300",
+    accentLight: "from-pink-500/10 to-rose-500/10 hover:from-pink-500/20 hover:to-rose-500/20 text-pink-700 dark:text-pink-200 border-pink-500/25 hover:border-pink-400",
+    textAccent: "text-pink-600 dark:text-pink-400",
+    textAccentLight: "text-pink-500 dark:text-pink-300",
     glow: "shadow-[0_0_50px_rgba(236,72,153,0.15)]",
     bubbleUser: "bg-gradient-to-br from-pink-500 to-rose-600 text-white border-pink-400/40 shadow-[0_4px_20px_rgba(236,72,153,0.3)]",
-    bubbleBot: "bg-neutral-900/80 border border-white/5 text-neutral-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
+    bubbleBotDark: "bg-neutral-900/80 border border-white/5 text-neutral-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
+    bubbleBotLight: "bg-neutral-100 border border-pink-200 text-neutral-800 shadow-[0_4px_15px_rgba(0,0,0,0.05)]",
     orbs: ["bg-pink-500/20", "bg-rose-500/20"],
     headerBorder: "via-pink-500/50",
     faceGlow: "drop-shadow-[0_0_15px_rgba(236,72,153,0.6)]",
@@ -235,10 +242,10 @@ const parseMarkdownInline = (text: string): string => {
   html = html.replace(/\*([\s\S]*?)\*/g, "<em>$1</em>");
 
   // Inline code `code`
-  html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-900 border border-white/15 px-1 py-0.5 rounded text-cyan-300 font-mono text-[11px]">$1</code>');
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-900 dark:bg-slate-800 border border-black/10 dark:border-white/15 px-1 py-0.5 rounded text-cyan-600 dark:text-cyan-300 font-mono text-[11px]">$1</code>');
 
   // Bullet point list
-  html = html.replace(/^\s*-\s+(.+)$/gm, '<span class="flex items-start gap-1.5 pl-1.5"><span class="text-cyan-400 mt-1.5 shrink-0 w-1 h-1 rounded-full bg-cyan-400"></span><span>$1</span></span>');
+  html = html.replace(/^\s*-\s+(.+)$/gm, '<span class="flex items-start gap-1.5 pl-1.5"><span class="text-cyan-500 mt-1.5 shrink-0 w-1 h-1 rounded-full bg-cyan-500"></span><span>$1</span></span>');
 
   // Line breaks
   html = html.replace(/\n/g, "<br />");
@@ -346,6 +353,9 @@ const RobotFace = ({ expression, size = 40, theme = "cyber-blue" }: { expression
 
 export const AIChatbot = () => {
   const { isAuthenticated, user } = useAuth();
+  const { theme } = useTheme();
+  
+  const isLight = theme === "light";
   
   const [isOpen, setIsOpen] = useState(false);
   const [isMaximized, setIsMaximized] = useState(false);
@@ -870,7 +880,9 @@ export const AIChatbot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={isMaximized ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className={`rounded-[24px] ${colors.bg} backdrop-blur-2xl border ${colors.border} ${colors.glow} flex overflow-hidden text-left ring-1 ring-white/5 relative z-40 ${
+            className={`rounded-[24px] ${isLight ? colors.bgLight : colors.bgDark} border ${isLight ? "border-slate-200" : colors.border} ${colors.glow} flex overflow-hidden ring-1 ring-white/5 relative z-40 ${
+              isLight ? "text-slate-800" : "text-slate-200"
+            } ${
               isMaximized 
                 ? "w-full max-w-5xl h-[85vh] flex-row" 
                 : "w-[92vw] sm:w-[380px] h-[550px] flex-col"
@@ -879,7 +891,7 @@ export const AIChatbot = () => {
             {/* Split Screen Layout for Maximized dashboard */}
             <div className={`flex flex-col h-full relative z-10 ${isMaximized ? "w-full md:w-1/2 border-r border-white/5" : "w-full"}`}>
               {/* Header */}
-              <div className="relative p-4 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 flex items-center justify-between z-20 shrink-0">
+              <div className={`relative p-4 ${isLight ? "bg-slate-100/60 text-slate-800" : "bg-slate-900/40 text-white"} backdrop-blur-xl border-b ${isLight ? "border-slate-200" : "border-white/5"} flex items-center justify-between z-20 shrink-0`}>
                 <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent" style={{ backgroundImage: `linear-gradient(90deg, transparent, var(--tw-gradient-stops), transparent)` }} />
                 <div className="flex items-center gap-3">
                   <div className="bg-slate-950/80 rounded-full p-1 border border-cyan-500/30">
@@ -887,14 +899,14 @@ export const AIChatbot = () => {
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="text-sm font-heading font-black text-white uppercase tracking-wider">Smarty</span>
+                      <span className={`text-sm font-heading font-black uppercase tracking-wider ${isLight ? "text-slate-800" : "text-white"}`}>Smarty</span>
                       <span className={`text-[10px] bg-cyan-500/10 px-1.5 py-0.2 rounded-full border border-cyan-500/20 font-mono animate-pulse ${colors.textAccentLight}`}>
                         AI Mascot
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                      <span className="text-[10px] text-slate-400 font-mono">
+                      <span className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-slate-400"}`}>
                         {isAuthenticated && user?.email ? `${user.name || "User"} online` : "Beep boop online"}
                       </span>
                     </div>
@@ -911,7 +923,7 @@ export const AIChatbot = () => {
                       }
                       toast.success(isSpeakingEnabled ? "Voice output disabled." : "Voice output enabled!");
                     }}
-                    className={`p-1.5 rounded-xl transition-all ${isSpeakingEnabled ? "text-cyan-400 bg-cyan-500/10" : "text-slate-400 hover:text-white"}`}
+                    className={`p-1.5 rounded-xl transition-all ${isSpeakingEnabled ? "text-cyan-400 bg-cyan-500/10" : "text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
                     title="Toggle Text-to-Speech"
                   >
                     {isSpeakingEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
@@ -921,7 +933,7 @@ export const AIChatbot = () => {
                   <div className="relative">
                     <button
                       onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-                      className={`p-1.5 rounded-xl text-slate-400 hover:text-white transition-all ${isSettingsOpen ? "bg-white/5" : ""}`}
+                      className={`p-1.5 rounded-xl text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all ${isSettingsOpen ? "bg-white/5" : ""}`}
                       title="Settings"
                     >
                       <Settings size={16} />
@@ -934,18 +946,18 @@ export const AIChatbot = () => {
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: 5 }}
-                          className="absolute right-0 mt-2 w-44 rounded-xl bg-slate-900/95 border border-white/10 p-2.5 shadow-2xl z-50 text-[11px] space-y-2.5"
+                          className={`absolute right-0 mt-2 w-44 rounded-xl ${isLight ? "bg-white border-slate-200 text-slate-800 shadow-xl" : "bg-slate-900/95 border-white/10 text-white shadow-2xl"} border p-2.5 z-50 text-[11px] space-y-2.5`}
                         >
-                          <div className="font-semibold text-slate-400 border-b border-white/5 pb-1">CONSOLE THEME</div>
+                          <div className={`font-semibold border-b pb-1 ${isLight ? "text-slate-500 border-slate-100" : "text-slate-400 border-white/5"}`}>CONSOLE THEME</div>
                           <div className="flex flex-col gap-1">
-                            <button onClick={() => handleThemeChange("cyber-blue")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "cyber-blue" ? "text-cyan-400 bg-white/5" : "text-slate-300 hover:bg-white/5"}`}>Cyber Blue</button>
-                            <button onClick={() => handleThemeChange("matrix")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "matrix" ? "text-emerald-400 bg-white/5" : "text-slate-300 hover:bg-white/5"}`}>Matrix Terminal</button>
-                            <button onClick={() => handleThemeChange("holo-pink")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "holo-pink" ? "text-pink-400 bg-white/5" : "text-slate-300 hover:bg-white/5"}`}>Holo Pink</button>
+                            <button onClick={() => handleThemeChange("cyber-blue")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "cyber-blue" ? (isLight ? "text-cyan-600 bg-slate-100" : "text-cyan-400 bg-white/5") : (isLight ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 hover:bg-white/5")}`}>Cyber Blue</button>
+                            <button onClick={() => handleThemeChange("matrix")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "matrix" ? (isLight ? "text-emerald-600 bg-slate-100" : "text-emerald-400 bg-white/5") : (isLight ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 hover:bg-white/5")}`}>Matrix Terminal</button>
+                            <button onClick={() => handleThemeChange("holo-pink")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "holo-pink" ? (isLight ? "text-pink-600 bg-slate-100" : "text-pink-400 bg-white/5") : (isLight ? "text-slate-700 hover:bg-slate-100" : "text-slate-300 hover:bg-white/5")}`}>Holo Pink</button>
                           </div>
-                          <div className="border-t border-white/5 pt-2">
+                          <div className={`border-t pt-2 ${isLight ? "border-slate-100" : "border-white/5"}`}>
                             <button 
                               onClick={clearChatHistory} 
-                              className="w-full text-left px-2 py-1.5 rounded text-pink-400 hover:bg-pink-500/10 transition-colors flex items-center gap-1.5"
+                              className="w-full text-left px-2 py-1.5 rounded text-pink-500 hover:bg-pink-500/10 transition-colors flex items-center gap-1.5"
                             >
                               <Trash2 size={12} /> Clear Chat history
                             </button>
@@ -958,7 +970,7 @@ export const AIChatbot = () => {
                   {/* Window Maximize / Minimize toggle */}
                   <button
                     onClick={() => setIsMaximized(!isMaximized)}
-                    className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors hidden md:block"
+                    className="text-slate-400 hover:text-slate-800 dark:hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors hidden md:block"
                     title={isMaximized ? "Exit Dashboard Mode" : "Expand to Dashboard"}
                   >
                     {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -966,7 +978,7 @@ export const AIChatbot = () => {
 
                   <button
                     onClick={toggleChat}
-                    className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors"
+                    className="text-slate-400 hover:text-slate-800 dark:hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors"
                   >
                     <X size={16} />
                   </button>
@@ -997,11 +1009,11 @@ export const AIChatbot = () => {
                       className={`max-w-[82%] px-4 py-3 text-[13px] sm:text-sm leading-relaxed tracking-wide rounded-[20px] ${
                         m.sender === "user"
                           ? `${colors.bubbleUser} rounded-br-sm`
-                          : `${colors.bubbleBot} rounded-tl-sm`
+                          : `${isLight ? colors.bubbleBotLight : colors.bubbleBotDark} rounded-tl-sm`
                       }`}
                     >
                       {renderMessageText(m.text)}
-                      <span className="text-[8px] text-slate-400 font-mono block text-right mt-1.5 font-light select-none">
+                      <span className={`text-[8px] block text-right mt-1.5 font-light select-none ${isLight ? "text-slate-500" : "text-slate-400"}`}>
                         {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </span>
                     </div>
@@ -1018,7 +1030,7 @@ export const AIChatbot = () => {
                     <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
                       <Bot size={13} className={colors.textAccent} />
                     </div>
-                    <div className="bg-slate-900/80 backdrop-blur-md border border-white/5 px-5 py-3.5 rounded-[20px] rounded-tl-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+                    <div className={`${isLight ? "bg-slate-100 border-slate-200" : "bg-slate-900/80 border-white/5"} border backdrop-blur-md px-5 py-3.5 rounded-[20px] rounded-tl-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.1)]`}>
                       <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-[bounce_1s_infinite_0ms]" />
                       <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-[bounce_1s_infinite_150ms]" />
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-[bounce_1s_infinite_300ms]" />
@@ -1039,19 +1051,19 @@ export const AIChatbot = () => {
                   </button>
                   <button
                     onClick={() => handleChipClick("Website Designing & UI/UX 🎨")}
-                    className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
+                    className={`shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 hover:border-cyan-500/30" : "bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border-white/10 hover:border-cyan-500/30"} transition-all shadow-sm`}
                   >
                     Website UI/UX
                   </button>
                   <button
                     onClick={() => handleChipClick("Website Development & Systems 💻")}
-                    className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
+                    className={`shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 hover:border-cyan-500/30" : "bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border-white/10 hover:border-cyan-500/30"} transition-all shadow-sm`}
                   >
                     Web Development
                   </button>
                   <button
                     onClick={() => handleChipClick("Custom Automation Software ⚙️")}
-                    className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
+                    className={`shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200 hover:border-cyan-500/30" : "bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border-white/10 hover:border-cyan-500/30"} transition-all shadow-sm`}
                   >
                     Custom Software
                   </button>
@@ -1059,15 +1071,15 @@ export const AIChatbot = () => {
               )}
 
               {/* Input Area */}
-              <div className="p-4 bg-slate-950/60 backdrop-blur-xl border-t border-white/5 shrink-0 relative z-20">
+              <div className={`p-4 ${isLight ? "bg-slate-50/80 border-slate-200" : "bg-slate-950/60 border-white/5"} backdrop-blur-xl border-t shrink-0 relative z-20`}>
                 {mode === "chat" ? (
                   <form onSubmit={handleChatSubmit} className="flex gap-2 items-center">
                     {/* Speech Recognition mic button */}
                     <button
                       type="button"
                       onClick={toggleSpeechInput}
-                      className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 text-slate-400 hover:text-white transition-all relative ${
-                        isListening ? `${colors.micGlow} text-cyan-400 animate-pulse` : "bg-slate-900/80 hover:bg-slate-800"
+                      className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 border ${isLight ? "border-slate-200" : "border-white/10"} text-slate-400 hover:text-slate-800 dark:hover:text-white transition-all relative ${
+                        isListening ? `${colors.micGlow} text-cyan-400 animate-pulse` : (isLight ? "bg-white hover:bg-slate-100" : "bg-slate-900/80 hover:bg-slate-800")
                       }`}
                       title={isListening ? "Listening... click to stop" : "Start Voice input"}
                     >
@@ -1091,7 +1103,7 @@ export const AIChatbot = () => {
                       onChange={(e) => setInputText(e.target.value)}
                       placeholder={isListening ? "Speak now..." : "Ask Smarty something..."}
                       disabled={isTyping || isListening}
-                      className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-11 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all flex-1"
+                      className={`${isLight ? "bg-white border-slate-200 text-slate-800 focus:bg-white" : "bg-slate-900/80 border-white/10 text-white focus:bg-slate-800"} focus:ring-1 focus:ring-cyan-400/50 rounded-2xl h-11 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all flex-1`}
                     />
 
                     <Button
@@ -1128,7 +1140,7 @@ export const AIChatbot = () => {
                             placeholder="Describe your project requirements (min 100 characters)..."
                             required
                             rows={2}
-                            className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl text-xs sm:text-[13px] placeholder:text-slate-500 resize-none min-h-[60px] p-3 shadow-inner transition-all"
+                            className={`${isLight ? "bg-white border-slate-200 text-slate-800" : "bg-slate-900/80 border-white/10 text-white"} focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 rounded-2xl text-xs sm:text-[13px] placeholder:text-slate-500 resize-none min-h-[60px] p-3 shadow-inner transition-all`}
                           />
                         ) : (
                           <Input
@@ -1143,7 +1155,7 @@ export const AIChatbot = () => {
                             }
                             type={mode === "form-email" ? "email" : "text"}
                             required
-                            className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-11 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all"
+                            className={`${isLight ? "bg-white border-slate-200 text-slate-800" : "bg-slate-900/80 border-white/10 text-white"} focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 rounded-2xl h-11 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all`}
                           />
                         )}
                       </div>
@@ -1193,19 +1205,19 @@ export const AIChatbot = () => {
 
             {/* Right Panel: Advanced Command Center Dashboard (split screen layout) */}
             {isMaximized && (
-              <div className="hidden md:flex md:w-1/2 flex-col h-full bg-slate-900/20 overflow-y-auto p-6 space-y-6 relative z-10 font-body select-none">
+              <div className={`hidden md:flex md:w-1/2 flex-col h-full ${isLight ? "bg-slate-50/50" : "bg-slate-900/20"} overflow-y-auto p-6 space-y-6 relative z-10 font-body select-none`}>
                 <div>
                   <h3 className={`text-base font-heading font-black tracking-wider uppercase flex items-center gap-2 ${colors.textAccent}`}>
                     <Sparkles size={16} /> Command Center
                   </h3>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                  <p className={`text-xs leading-relaxed mt-1 ${isLight ? "text-slate-600" : "text-slate-400"}`}>
                     Pre-compile detailed project requirements directly into Smarty's neural parser using our system configs.
                   </p>
                 </div>
 
                 {/* 1. Project Brief Generator */}
-                <div className="p-5 rounded-2xl bg-slate-950/70 border border-white/5 space-y-4 shadow-xl">
-                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                <div className={`p-5 rounded-2xl ${isLight ? "bg-white border-slate-200/80 shadow-md text-slate-800" : "bg-slate-950/70 border-white/5 text-white"} border space-y-4 shadow-xl`}>
+                  <h4 className="text-xs font-bold uppercase tracking-widest flex items-center gap-1.5">
                     <Briefcase size={13} className={colors.textAccent} /> Requirement Compiler
                   </h4>
                   
@@ -1216,7 +1228,7 @@ export const AIChatbot = () => {
                       <select 
                         value={briefService}
                         onChange={(e) => setBriefService(e.target.value)}
-                        className="w-full h-9 bg-slate-900 border border-white/5 focus:border-cyan-500/30 text-xs rounded-xl px-2 text-slate-300 outline-none transition-colors"
+                        className={`w-full h-9 ${isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-slate-900 border-white/5 text-slate-300"} border focus:border-cyan-500/30 text-xs rounded-xl px-2 outline-none transition-colors`}
                       >
                         <option>Website Design & Development</option>
                         <option>Mobile App (iOS/Android)</option>
@@ -1233,7 +1245,7 @@ export const AIChatbot = () => {
                         <select 
                           value={briefBudget}
                           onChange={(e) => setBriefBudget(e.target.value)}
-                          className="w-full h-9 bg-slate-900 border border-white/5 text-xs rounded-xl px-2 text-slate-300 outline-none"
+                          className={`w-full h-9 ${isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-slate-900 border-white/5 text-slate-300"} border text-xs rounded-xl px-2 outline-none`}
                         >
                           <option>&lt; $1,000</option>
                           <option>$1,000 - $5,000</option>
@@ -1246,7 +1258,7 @@ export const AIChatbot = () => {
                         <select 
                           value={briefTimeline}
                           onChange={(e) => setBriefTimeline(e.target.value)}
-                          className="w-full h-9 bg-slate-900 border border-white/5 text-xs rounded-xl px-2 text-slate-300 outline-none"
+                          className={`w-full h-9 ${isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-slate-900 border-white/5 text-slate-300"} border text-xs rounded-xl px-2 outline-none`}
                         >
                           <option>1 Month</option>
                           <option>2-3 Months</option>
@@ -1263,7 +1275,7 @@ export const AIChatbot = () => {
                         onChange={(e) => setBriefDetails(e.target.value)}
                         placeholder="Type system parameters, features, pages, or databases needed..."
                         rows={3}
-                        className="bg-slate-900 border border-white/5 focus:border-cyan-500/30 text-xs rounded-xl p-2.5 text-slate-300 outline-none resize-none min-h-[70px]"
+                        className={`w-full ${isLight ? "bg-slate-50 border-slate-200 text-slate-700 focus:bg-white" : "bg-slate-900 border-white/5 text-slate-300 focus:bg-slate-800"} border focus:border-cyan-500/30 text-xs rounded-xl p-2.5 outline-none resize-none min-h-[70px] transition-colors`}
                       />
                     </div>
 
@@ -1278,34 +1290,34 @@ export const AIChatbot = () => {
 
                 {/* 2. OES System Capabilities Showcase */}
                 <div className="space-y-3.5">
-                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Capabilities Index</h4>
+                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isLight ? "text-slate-600" : "text-slate-300"}`}>Capabilities Index</h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div 
                       onClick={() => setInputText("What is the average timeline for a website redesign project?")}
-                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                      className={`p-3 rounded-xl ${isLight ? "bg-white border-slate-200/80 hover:bg-slate-100/50 shadow-sm" : "bg-slate-950/40 border-white/5 hover:border-cyan-500/30"} border transition-all cursor-pointer text-left`}
                     >
-                      <div className="font-semibold text-slate-300 text-xs">Website UI/UX</div>
+                      <div className={`font-semibold text-xs ${isLight ? "text-slate-800" : "text-slate-300"}`}>Website UI/UX</div>
                       <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">Average project timelines, process flow, and prototypes.</div>
                     </div>
                     <div 
                       onClick={() => setInputText("Tell me more about your Custom Software Automation & CRMs.")}
-                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                      className={`p-3 rounded-xl ${isLight ? "bg-white border-slate-200/80 hover:bg-slate-100/50 shadow-sm" : "bg-slate-950/40 border-white/5 hover:border-cyan-500/30"} border transition-all cursor-pointer text-left`}
                     >
-                      <div className="font-semibold text-slate-300 text-xs">Custom CRM</div>
+                      <div className={`font-semibold text-xs ${isLight ? "text-slate-800" : "text-slate-300"}`}>Custom CRM</div>
                       <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">Workflow automations, internal portals, database integrations.</div>
                     </div>
                     <div 
                       onClick={() => setInputText("What bulk SMS APIs and delivery rates do you provide?")}
-                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                      className={`p-3 rounded-xl ${isLight ? "bg-white border-slate-200/80 hover:bg-slate-100/50 shadow-sm" : "bg-slate-950/40 border-white/5 hover:border-cyan-500/30"} border transition-all cursor-pointer text-left`}
                     >
-                      <div className="font-semibold text-slate-300 text-xs">Bulk SMS APIs</div>
+                      <div className={`font-semibold text-xs ${isLight ? "text-slate-800" : "text-slate-300"}`}>Bulk SMS APIs</div>
                       <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">High-throughput outreach with 99.8% server uptime.</div>
                     </div>
                     <div 
                       onClick={() => setInputText("How does OES secure rankings on page-1 of Google search?")}
-                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                      className={`p-3 rounded-xl ${isLight ? "bg-white border-slate-200/80 hover:bg-slate-100/50 shadow-sm" : "bg-slate-950/40 border-white/5 hover:border-cyan-500/30"} border transition-all cursor-pointer text-left`}
                     >
-                      <div className="font-semibold text-slate-300 text-xs">SEO Solutions</div>
+                      <div className={`font-semibold text-xs ${isLight ? "text-slate-800" : "text-slate-300"}`}>SEO Solutions</div>
                       <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">Traffic pipelines, keywords audit, and search visibility.</div>
                     </div>
                   </div>
@@ -1313,20 +1325,20 @@ export const AIChatbot = () => {
 
                 {/* 3. System FAQs */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Quick FAQs</h4>
+                  <h4 className={`text-xs font-bold uppercase tracking-widest ${isLight ? "text-slate-600" : "text-slate-300"}`}>Quick FAQs</h4>
                   <div className="space-y-2 text-xs">
                     <div 
                       onClick={() => setInputText("Can I capture leads directly in my internal database with the chatbot?")}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/20 border border-white/5 hover:bg-slate-900/40 cursor-pointer text-slate-300 transition-colors text-left"
+                      className={`flex items-center justify-between p-2.5 rounded-xl ${isLight ? "bg-white border-slate-200/60 hover:bg-slate-50 text-slate-800 shadow-sm" : "bg-slate-950/20 border-white/5 hover:bg-slate-900/40 text-slate-300"} border cursor-pointer transition-colors text-left`}
                     >
-                      <span className="truncate">Can chatbot capture leads in custom CRM?</span>
+                      <span className="truncate font-medium">Can chatbot capture leads in custom CRM?</span>
                       <ChevronRight size={13} className="text-slate-500 shrink-0 ml-2" />
                     </div>
                     <div 
                       onClick={() => setInputText("Do you offer post-launch maintenance & code support?")}
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/20 border border-white/5 hover:bg-slate-900/40 cursor-pointer text-slate-300 transition-colors text-left"
+                      className={`flex items-center justify-between p-2.5 rounded-xl ${isLight ? "bg-white border-slate-200/60 hover:bg-slate-50 text-slate-800 shadow-sm" : "bg-slate-950/20 border-white/5 hover:bg-slate-900/40 text-slate-300"} border cursor-pointer transition-colors text-left`}
                     >
-                      <span className="truncate">Do you provide maintenance and updates?</span>
+                      <span className="truncate font-medium">Do you provide maintenance and updates?</span>
                       <ChevronRight size={13} className="text-slate-500 shrink-0 ml-2" />
                     </div>
                   </div>
