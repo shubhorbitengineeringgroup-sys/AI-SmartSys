@@ -33,22 +33,28 @@ const Navbar = () => {
   const logoSrc = theme === "dark" ? aiLogoDark : aiLogo;
 
   useEffect(() => {
+    let ticking = false;
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 20);
 
-      const sections = navLinks
-        .map((l) => l.href.includes("#") ? l.href.split("#")[1] : null)
-        .filter(Boolean);
+        const sections = navLinks
+          .map((l) => l.href.includes("#") ? l.href.split("#")[1] : null)
+          .filter(Boolean);
 
-      let current = "home";
-      for (const id of sections) {
-        if (!id) continue;
-        const el = document.getElementById(id);
-        if (el && el.getBoundingClientRect().top <= 140) {
-          current = id;
+        let current = "home";
+        for (const id of sections) {
+          if (!id) continue;
+          const el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top <= 140) {
+            current = id;
+          }
         }
-      }
-      setActiveSection(`#${current}`);
+        setActiveSection(`#${current}`);
+        ticking = false;
+      });
     };
 
     handleScroll(); // Initial check
@@ -90,44 +96,49 @@ const Navbar = () => {
     }
   }, [location.pathname, location.hash]);
 
-  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const handleNavClick = (href: string) => {
     const hashIndex = href.indexOf("#");
     const isHash = hashIndex !== -1;
     if (isHash) {
       const targetId = href.substring(hashIndex + 1);
       const isHomepage = location.pathname === "/" || location.pathname === "/index.html" || document.getElementById("home") !== null;
 
+      // Close menu immediately on tap
+      setIsOpen(false);
+
       if (isHomepage) {
-        e.preventDefault();
         const element = document.getElementById(targetId);
         if (element) {
           const offset = 80;
           const bodyRect = document.body.getBoundingClientRect().top;
           const elementRect = element.getBoundingClientRect().top;
           const elementPosition = elementRect - bodyRect;
-          const offsetPosition = elementPosition - offset;
+          const offsetPosition = Math.max(0, elementPosition - offset);
 
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: "smooth"
-          });
+          // Defer scroll to let touch event end and menu collapse begin
+          // This prevents mobile browsers from aborting the smooth scroll
+          setTimeout(() => {
+            window.scrollTo({
+              top: offsetPosition,
+              behavior: "smooth"
+            });
+          }, 150);
           
           window.history.pushState(null, "", href);
           setActiveSection("#" + targetId);
         }
       } else {
         if (location.pathname === "/about" && targetId === "about") {
-          e.preventDefault();
-          window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-          });
+          setTimeout(() => {
+            window.scrollTo({
+              top: 0,
+              behavior: "smooth"
+            });
+          }, 150);
         } else {
-          e.preventDefault();
           navigate(href);
         }
       }
-      setIsOpen(false);
     }
   };
 
@@ -189,7 +200,7 @@ const Navbar = () => {
                 <Link
                   key={link.href}
                   to={link.href}
-                  onClick={(e: any) => handleLinkClick(e, link.href)}
+                  onClick={(e) => { e.preventDefault(); handleNavClick(link.href); }}
                   onMouseEnter={() => setHoveredHref(link.href)}
                   className={`relative px-2.5 xl:px-4 py-2 text-xs xl:text-sm font-bold uppercase tracking-wider transition-colors duration-300 select-none z-10 ${
                     isActive 
@@ -302,28 +313,25 @@ const Navbar = () => {
                 {navLinks.map((link) => {
                   const isActive = checkActive(link.href);
                   return (
-                    <Link
+                    <motion.div
                       key={link.href}
-                      to={link.href}
-                      onClick={(e: any) => handleLinkClick(e, link.href)}
-                      className={`relative px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-between border ${
+                      variants={{
+                        open: { y: 0, opacity: 1, scale: 1 },
+                        closed: { y: -10, opacity: 0, scale: 0.95 }
+                      }}
+                      transition={{ type: "spring", stiffness: 350, damping: 24 }}
+                      onClick={() => handleNavClick(link.href)}
+                      role="button"
+                      tabIndex={0}
+                      className={`relative px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-between border cursor-pointer ${
                         isActive
                           ? "bg-gradient-nav-pill text-primary-foreground border-transparent shadow-md shadow-primary/10"
                           : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                       }`}
                     >
-                      <motion.div
-                        variants={{
-                          open: { y: 0, opacity: 1, scale: 1 },
-                          closed: { y: -10, opacity: 0, scale: 0.95 }
-                        }}
-                        transition={{ type: "spring", stiffness: 350, damping: 24 }}
-                        className="w-full flex items-center justify-between"
-                      >
-                        <span>{link.label}</span>
-                        {isActive && <span className="w-1 h-1 rounded-full bg-primary-foreground animate-ping" />}
-                      </motion.div>
-                    </Link>
+                      <span>{link.label}</span>
+                      {isActive && <span className="w-1 h-1 rounded-full bg-primary-foreground animate-ping" />}
+                    </motion.div>
                   );
                 })}
                 

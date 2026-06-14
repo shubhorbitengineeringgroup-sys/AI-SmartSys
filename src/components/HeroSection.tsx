@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { GlowOrb } from "./TechPattern";
 import { ArrowRight, Terminal, RefreshCw, Cpu, Layers, Sparkles, Zap, BrainCircuit, Shield } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import heroNeural from "@/assets/images/hero-neural.png";
 import heroBrain from "@/assets/images/hero-brain.png";
 import heroData from "@/assets/images/hero-data.png";
@@ -13,8 +13,9 @@ import AuthModal from "./AuthModal";
 import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
 
 // ─── Floating Particles Component ───
-const FloatingParticles = () => {
-  const particles = Array.from({ length: 30 }, (_, i) => ({
+const FloatingParticles = memo(() => {
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  const particles = Array.from({ length: isMobile ? 12 : 30 }, (_, i) => ({
     id: i,
     size: Math.random() * 4 + 1,
     x: Math.random() * 100,
@@ -58,7 +59,8 @@ const FloatingParticles = () => {
       ))}
     </div>
   );
-};
+});
+FloatingParticles.displayName = 'FloatingParticles';
 
 // ─── Animated Counter Component ───
 const AnimatedCounter = ({ target, suffix = "", label }: { target: number; suffix?: string; label: string }) => {
@@ -465,7 +467,7 @@ const HeroSection = () => {
 
           {/* ─── RIGHT COLUMN: Card Deck + Orbital Rings ─── */}
           <motion.div
-            style={{ y: yParallax, opacity: opacityFade }}
+            style={{ y: yParallax, opacity: opacityFade, willChange: 'transform, opacity' }}
             className="lg:col-span-5 relative flex items-center justify-center z-[2]"
           >
             {/* Floating Tech Badges */}

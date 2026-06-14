@@ -47,12 +47,14 @@ const Index = () => {
     // Observe initially
     observeElements();
 
-    // Re-observe periodically or when elements might be added by Suspense
-    const interval = setInterval(observeElements, 1000);
+    // Re-observe once after lazy components likely loaded
+    const timeout1 = setTimeout(observeElements, 1500);
+    const timeout2 = setTimeout(observeElements, 4000);
 
     return () => {
       observer.disconnect();
-      clearInterval(interval);
+      clearTimeout(timeout1);
+      clearTimeout(timeout2);
     };
   }, []);
 

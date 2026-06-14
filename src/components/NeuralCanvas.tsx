@@ -22,8 +22,9 @@ export const NeuralCanvas = () => {
 
     let animationId: number;
     const particles: Particle[] = [];
-    const particleCount = Math.min(60, Math.floor((window.innerWidth * window.innerHeight) / 18000));
-    const connectionDistance = 120;
+    const isMobile = window.innerWidth < 768;
+    const particleCount = isMobile ? Math.min(20, Math.floor((window.innerWidth * window.innerHeight) / 25000)) : Math.min(50, Math.floor((window.innerWidth * window.innerHeight) / 18000));
+    const connectionDistance = isMobile ? 80 : 120;
 
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
@@ -65,7 +66,13 @@ export const NeuralCanvas = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Animation loop
+    let frameCount = 0;
     const animate = () => {
+      frameCount++;
+      if (isMobile && frameCount % 2 !== 0) {
+        animationId = requestAnimationFrame(animate);
+        return;
+      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Gradient color configuration based on theme
@@ -171,6 +178,7 @@ export const NeuralCanvas = () => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-[1] opacity-70"
+      style={{ willChange: 'transform' }}
     />
   );
 };
