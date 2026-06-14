@@ -409,12 +409,14 @@ export const AIChatbot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="absolute bottom-20 left-0 w-[92vw] sm:w-[380px] h-[550px] rounded-[2rem] glass-gradient border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden text-left"
+            className="absolute bottom-20 left-0 w-[92vw] sm:w-[380px] h-[550px] rounded-[24px] bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col overflow-hidden text-left ring-1 ring-white/5"
           >
             {/* Header */}
-            <div className="p-4 bg-gradient-to-r from-indigo-900/90 via-purple-900/80 to-slate-900/90 border-b border-white/10 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
+            <div className="relative p-4 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 flex items-center justify-between z-20">
+              {/* Bottom glowing line */}
+              <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
               <div className="flex items-center gap-3">
-                <div className="bg-slate-900/60 rounded-full p-0.5 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                <div className="bg-slate-950/80 rounded-full p-1 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
                   <RobotFace expression={expression} size={42} />
                 </div>
                 <div>
@@ -438,30 +440,37 @@ export const AIChatbot = () => {
               </button>
             </div>
 
+            {/* Background Grid */}
+            <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0" style={{ backgroundImage: "linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(90deg, #06b6d4 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+            
+            {/* Glowing Orbs in background */}
+            <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-cyan-500/20 rounded-full blur-[60px] pointer-events-none z-0" />
+            <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-purple-500/20 rounded-full blur-[70px] pointer-events-none z-0" />
+
             {/* Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3.5 scrollbar-thin scrollbar-track-slate-950/20 scrollbar-thumb-cyan-500/40">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-cyan-500/20 z-10 relative">
               {messages.map((m) => (
                 <div
                   key={m.id}
                   className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2.5`}
                 >
                   {m.sender === "bot" && (
-                    <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0 border border-cyan-500/20">
-                      <Bot size={13} className="text-cyan-400" />
+                    <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
+                      <Bot size={14} className="text-cyan-400" />
                     </div>
                   )}
                   <div
-                    className={`max-w-[78%] px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                    className={`max-w-[82%] px-4 py-3 text-[13px] sm:text-sm leading-relaxed tracking-wide ${
                       m.sender === "user"
-                        ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-bl-none shadow-[0_4px_15px_rgba(6,182,212,0.25)] border border-cyan-400/30"
-                        : "bg-slate-800/80 backdrop-blur-md border border-cyan-500/20 text-slate-100 rounded-tl-none shadow-[0_4px_15px_rgba(0,0,0,0.2)]"
+                        ? "bg-gradient-to-br from-cyan-500 to-indigo-600 text-white rounded-[20px] rounded-br-sm shadow-[0_4px_20px_rgba(6,182,212,0.3)] border border-cyan-400/40"
+                        : "bg-slate-900/80 backdrop-blur-md border border-white/5 text-slate-200 rounded-[20px] rounded-tl-sm shadow-[0_4px_20px_rgba(0,0,0,0.3)] inset-shadow-sm"
                     }`}
                   >
                     {m.text}
                   </div>
                   {m.sender === "user" && (
-                    <div className="w-6 h-6 rounded-full bg-cyan-500/20 flex items-center justify-center shrink-0 border border-cyan-500/30">
-                      <User size={13} className="text-cyan-400" />
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)] mt-1">
+                      <User size={14} className="text-white" />
                     </div>
                   )}
                 </div>
@@ -469,13 +478,13 @@ export const AIChatbot = () => {
 
               {isTyping && (
                 <div className="flex justify-start items-center gap-2.5">
-                  <div className="w-6 h-6 rounded-full bg-indigo-500/10 flex items-center justify-center shrink-0 border border-cyan-500/20">
-                    <Bot size={13} className="text-cyan-400" />
+                  <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
+                    <Bot size={14} className="text-cyan-400" />
                   </div>
-                  <div className="bg-slate-900/60 border border-white/5 px-4 py-3 rounded-2xl rounded-tl-none flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "0ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "150ms" }} />
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  <div className="bg-slate-900/80 backdrop-blur-md border border-white/5 px-5 py-3.5 rounded-[20px] rounded-tl-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-[bounce_1s_infinite_0ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-[bounce_1s_infinite_150ms]" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-[bounce_1s_infinite_300ms]" />
                   </div>
                 </div>
               )}
@@ -484,7 +493,7 @@ export const AIChatbot = () => {
 
             {/* Quick Actions (Suggestion chips) */}
             {mode === "chat" && !isTyping && (
-              <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 select-none no-scrollbar border-t border-white/5 bg-slate-950/20 scrollbar-none">
+              <div className="px-4 py-3 flex gap-2 overflow-x-auto shrink-0 select-none no-scrollbar border-t border-white/5 bg-slate-950/40 backdrop-blur-md scrollbar-none relative z-20">
                 <button
                   onClick={() => handleChipClick("Submit Requirements 📝")}
                   className="shrink-0 text-[10px] sm:text-xs font-semibold py-1.5 px-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-200 border border-cyan-500/40 hover:border-cyan-400 transition-all flex items-center gap-1 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
@@ -525,7 +534,7 @@ export const AIChatbot = () => {
             )}
 
             {/* Form Input Area */}
-            <div className="p-4 border-t border-white/5 bg-slate-950/45 shrink-0">
+            <div className="p-4 bg-slate-950/60 backdrop-blur-xl border-t border-white/5 shrink-0 relative z-20">
               {mode === "chat" ? (
                 /* Regular Chat input */
                 <form onSubmit={handleChatSubmit} className="flex gap-2">
@@ -534,12 +543,12 @@ export const AIChatbot = () => {
                     onChange={(e) => setInputText(e.target.value)}
                     placeholder="Ask Smarty something..."
                     disabled={isTyping}
-                    className="bg-slate-900/60 border-white/10 focus:border-cyan-500/50 text-white rounded-2xl h-11 text-xs sm:text-sm placeholder:text-slate-500"
+                    className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-12 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all"
                   />
                   <Button
                     type="submit"
                     disabled={isTyping || !inputText.trim()}
-                    className="h-11 w-11 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:opacity-90 shrink-0 text-white shadow-[0_4px_15px_rgba(6,182,212,0.3)] transition-all hover:scale-105"
+                    className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-90 shrink-0 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] border border-cyan-400/30 transition-all hover:scale-105 hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]"
                     size="icon"
                   >
                     <Send size={15} />
@@ -573,7 +582,7 @@ export const AIChatbot = () => {
                           placeholder="Describe your project in detail (min 100 characters)..."
                           required
                           rows={2}
-                          className="bg-slate-900/60 border-white/10 focus:border-cyan-500/50 text-white rounded-xl text-xs sm:text-sm placeholder:text-slate-500 resize-none min-h-[50px] p-2.5"
+                          className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl text-xs sm:text-[13px] placeholder:text-slate-500 resize-none min-h-[60px] p-3 shadow-inner transition-all"
                         />
                       ) : (
                         <Input
@@ -588,13 +597,13 @@ export const AIChatbot = () => {
                           }
                           type={mode === "form-email" ? "email" : "text"}
                           required
-                          className="bg-slate-900/60 border-white/10 focus:border-cyan-500/50 text-white rounded-xl h-11 text-xs sm:text-sm placeholder:text-slate-500"
+                          className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-12 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all"
                         />
                       )}
                     </div>
-                    <Button
+                      <Button
                       type="submit"
-                      className="h-11 w-11 rounded-xl bg-cyan-500 hover:bg-cyan-600 text-white shrink-0 shadow-md shadow-cyan-500/20"
+                      className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-90 text-white shrink-0 shadow-[0_0_20px_rgba(6,182,212,0.4)] border border-cyan-400/30 transition-all hover:scale-105"
                       size="icon"
                     >
                       <Send size={15} />
