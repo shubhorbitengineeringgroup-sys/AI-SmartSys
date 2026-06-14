@@ -162,6 +162,9 @@ const CanvasConfetti = () => {
 // Copyable Code block component
 const CodeBlock = ({ code }: { code: string }) => {
   const [copied, setCopied] = useState(false);
+  const { theme } = useTheme();
+  
+  const storedTheme = typeof window !== "undefined" ? localStorage.getItem("smarty_chat_theme") || "cyber-blue" : "cyber-blue";
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -181,7 +184,7 @@ const CodeBlock = ({ code }: { code: string }) => {
           {copied ? "Copied!" : "Copy"}
         </button>
       </div>
-      <pre className="p-3 overflow-x-auto text-slate-300 whitespace-pre scrollbar-thin scrollbar-thumb-white/10 max-w-full leading-relaxed">
+      <pre className={`p-3 overflow-x-auto text-slate-300 whitespace-pre cute-scrollbar ${storedTheme}-scroll max-w-full leading-relaxed`}>
         <code>{code}</code>
       </pre>
     </div>
@@ -1042,7 +1045,7 @@ export const AIChatbot = () => {
 
               {/* Quick Actions (Suggestion chips) */}
               {mode === "chat" && !isTyping && (
-                <div className="px-4 py-3 flex gap-2 overflow-x-auto shrink-0 select-none no-scrollbar border-t border-white/5 bg-slate-950/40 backdrop-blur-md scrollbar-none relative z-20">
+                <div className={`px-4 py-3 flex gap-2 overflow-x-auto shrink-0 select-none border-t ${isLight ? "border-slate-200 bg-slate-50/45" : "border-white/5 bg-slate-950/40"} backdrop-blur-md cute-scrollbar ${terminalTheme}-scroll relative z-20`}>
                   <button
                     onClick={() => handleChipClick("Submit Requirements 📝")}
                     className={`shrink-0 text-[10px] sm:text-xs font-semibold py-1.5 px-3 rounded-full bg-gradient-to-r ${colors.accentLight}`}
