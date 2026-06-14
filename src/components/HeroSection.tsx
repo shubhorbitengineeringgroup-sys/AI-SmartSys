@@ -265,7 +265,7 @@ const HeroSection = () => {
       rotate = -12; x = (isStackHovered ? -60 : -25) * xMult; y = (isStackHovered ? 100 : 40) * yMult;
     }
 
-    return { zIndex, scale, x, y, rotate, opacity: isActive ? 1 : 0.8 };
+    return { zIndex, scale, x, y, rotate, opacity: isActive ? 1 : 0.4 };
   };
 
   const cardData = [
@@ -343,7 +343,7 @@ const HeroSection = () => {
       />
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <div className="relative z-10 container mx-auto px-4 pt-28 pb-20">
+      <div className="relative z-10 container mx-auto px-4 pt-28 pb-32 md:pb-20">
         <div className="grid lg:grid-cols-12 gap-12 xl:gap-16 items-center">
 
           {/* ─── LEFT COLUMN ─── */}
@@ -508,22 +508,28 @@ const HeroSection = () => {
               />
 
               {/* Card Deck */}
-              {cardData.map((card, idx) => (
-                <motion.div
-                  key={idx}
-                  animate={getCardStyle(idx)}
-                  transition={{ type: "spring", stiffness: 100, damping: 16 }}
-                  className="absolute w-[220px] h-[300px] md:w-[280px] md:h-[370px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
-                >
-                  <div className="relative w-full h-full overflow-hidden bg-slate-900">
-                    <img src={card.img} alt={card.label} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/20" />
-                    <div className="absolute bottom-3 left-3 flex items-center gap-1.5 text-[9px] font-mono text-white/90 bg-black/50 border border-white/15 px-2.5 py-1 rounded-full backdrop-blur-sm">
-                      <card.icon size={10} className={card.color} /> {card.label}
+              {cardData.map((card, idx) => {
+                const isActive = (currentSlide % 3) === idx;
+                return (
+                  <motion.div
+                    key={idx}
+                    animate={getCardStyle(idx)}
+                    transition={{ type: "spring", stiffness: 100, damping: 16 }}
+                    className="absolute w-[220px] h-[300px] md:w-[280px] md:h-[370px] rounded-3xl overflow-hidden border shadow-2xl"
+                    style={{
+                      borderColor: isActive ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.05)'
+                    }}
+                  >
+                    <div className="relative w-full h-full overflow-hidden bg-slate-900">
+                      <img src={card.img} alt={card.label} className="w-full h-full object-cover" />
+                      <div className={`absolute inset-0 transition-colors duration-500 ${isActive ? 'bg-gradient-to-t from-black/60 via-transparent to-transparent' : 'bg-black/60'}`} />
+                      <div className={`absolute bottom-3 left-3 flex items-center gap-1.5 text-[9px] font-mono text-white/90 bg-black/50 border border-white/15 px-2.5 py-1 rounded-full backdrop-blur-sm transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0'}`}>
+                        <card.icon size={10} className={card.color} /> {card.label}
+                      </div>
                     </div>
-                  </div>
-                </motion.div>
-              ))}
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
         </div>
