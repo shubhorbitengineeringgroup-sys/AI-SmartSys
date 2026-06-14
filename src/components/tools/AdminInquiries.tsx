@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { 
   Database, FileText, MessageSquare, Calendar, User, Mail, Phone, 
-  Trash2, CheckCircle2, RefreshCw, AlertCircle, Eye, Search, ChevronRight 
+  Trash2, CheckCircle2, RefreshCw, AlertCircle, Eye, Search, ChevronRight,
+  Download, Bot
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -92,7 +93,7 @@ const MOCK_CHAT_SESSIONS: ChatSession[] = [
   },
   {
     session_id: "sess-2",
-    user_name: "Anonymous User",
+    user_name: "Anonymous Guest",
     user_email: "N/A",
     message_count: 3,
     last_interaction: new Date(Date.now() - 3600000 * 1.5).toISOString(),
@@ -146,13 +147,13 @@ export const AdminInquiries = () => {
 
       const processedSessions: ChatSession[] = Object.keys(sessionsMap).map((sid) => {
         const msgs = sessionsMap[sid];
-        // Extract names/emails if user provided them
+        // Extract names/emails if user provided or linked them
         const userMsgWithName = msgs.find(m => m.user_name);
         const userMsgWithEmail = msgs.find(m => m.user_email);
 
         return {
           session_id: sid,
-          user_name: userMsgWithName?.user_name || "Anonymous User",
+          user_name: userMsgWithName?.user_name || "Guest User",
           user_email: userMsgWithEmail?.user_email || "N/A",
           message_count: msgs.length,
           last_interaction: msgs[msgs.length - 1]?.created_at || new Date().toISOString(),
@@ -220,6 +221,37 @@ export const AdminInquiries = () => {
     }
   };
 
+  // Export transcript as txt file
+  const handleExportTranscript = (session: ChatSession) => {
+    const header = `==================================================\n` +
+                   `AI-SMARTSYS CHATBOT TRANSCRIPT AUDIT\n` +
+                   `==================================================\n` +
+                   `Session ID: ${session.session_id}\n` +
+                   `Client Name: ${session.user_name}\n` +
+                   `Client Email: ${session.user_email}\n` +
+                   `Message Count: ${session.message_count}\n` +
+                   `Last Active: ${formatDate(session.last_interaction)}\n` +
+                   `==================================================\n\n`;
+                   
+    const chatContent = session.messages.map(m => {
+      const time = new Date(m.created_at).toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+      const date = new Date(m.created_at).toLocaleDateString("en-IN");
+      const senderName = m.sender === "user" ? `USER (${session.user_name})` : "SMARTY AI MASCOT";
+      return `[${date} ${time}] ${senderName}:\n${m.message}\n--------------------------------------------------\n`;
+    }).join("\n");
+    
+    const blob = new Blob([header + chatContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `smarty_transcript_${session.session_id}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("Transcript exported successfully!");
+  };
+
   const formatDate = (isoStr: string) => {
     const date = new Date(isoStr);
     return date.toLocaleDateString("en-IN", {
@@ -236,6 +268,14 @@ export const AdminInquiries = () => {
     s.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.source.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Search filter across chat log titles and text messages content!
+  const filteredChatSessions = chatSessions.filter(sess => 
+    sess.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sess.user_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sess.session_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    sess.messages.some(m => m.message.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -268,10 +308,10 @@ export const AdminInquiries = () => {
             <div className="relative flex-grow sm:flex-grow-0">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={15} />
               <Input
-                placeholder="Search inquiries..."
+                placeholder="Search leads or chats..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 h-10 w-full sm:w-[220px] rounded-xl bg-muted/40 border-border/50 text-xs sm:text-sm focus:border-pink-500/50"
+                className="pl-9 h-10 w-full sm:w-[240px] rounded-xl bg-muted/40 border-border/50 text-xs sm:text-sm focus:border-pink-500/50"
               />
             </div>
             <Button
@@ -335,7 +375,7 @@ export const AdminInquiries = () => {
                         </span>
                       </div>
                       
-                      <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed bg-muted/20 p-3.5 rounded-xl border border-border/30 font-mono break-words">
+                      <p className="text-xs sm:text-sm text-foreground/80 leading-relaxed bg-muted/20 p-3.5 rounded-xl border border-border/30 font-mono break-words whitespace-pre-wrap">
                         {sub.message}
                       </p>
 
@@ -378,73 +418,93 @@ export const AdminInquiries = () => {
                 <div className="w-8 h-8 border-2 border-primary/20 border-t-primary rounded-full animate-spin" />
                 <span className="text-xs font-mono">Loading transcripts...</span>
               </div>
-            ) : chatSessions.length === 0 ? (
+            ) : filteredChatSessions.length === 0 ? (
               <div className="text-center py-12 border border-dashed border-border/50 rounded-2xl text-muted-foreground text-sm">
-                No AI chatbot transcripts found in the database.
+                No chatbot transcripts found matching search query.
               </div>
             ) : (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left: Chat list */}
                 <div className="lg:col-span-1 space-y-3.5 border-r border-border/20 pr-0 lg:pr-4">
-                  <h3 className="font-heading font-semibold text-sm text-muted-foreground mb-3">Recent Chats</h3>
-                  <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
-                    {chatSessions.map((sess) => (
+                  <h3 className="font-heading font-semibold text-sm text-muted-foreground mb-3">Auditable Sessions</h3>
+                  <div className="space-y-2 max-h-[440px] overflow-y-auto pr-1 select-none">
+                    {filteredChatSessions.map((sess) => (
                       <div
                         key={sess.session_id}
                         onClick={() => setSelectedSession(sess)}
-                        className={`p-3.5 rounded-xl border cursor-pointer text-left transition-all ${
+                        className={`p-3.5 rounded-xl border cursor-pointer text-left transition-all relative ${
                           selectedSession?.session_id === sess.session_id
                             ? "bg-pink-500/10 border-pink-500/50 shadow-sm"
                             : "glass border-border/40 hover:border-border"
                         }`}
                       >
                         <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-xs font-bold text-foreground truncate max-w-[150px]">{sess.user_name}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">{sess.message_count} msgs</span>
+                          <span className="text-xs font-bold text-foreground truncate max-w-[155px] flex items-center gap-1">
+                            <User size={11} className={selectedSession?.session_id === sess.session_id ? "text-pink-400" : "text-slate-400"} />
+                            {sess.user_name}
+                          </span>
+                          <span className="text-[9px] text-muted-foreground font-mono bg-white/5 border border-white/10 px-1.5 py-0.2 rounded-full">{sess.message_count} msgs</span>
                         </div>
-                        <div className="text-[10px] text-muted-foreground truncate mb-1">{sess.user_email}</div>
-                        <div className="text-[9px] text-muted-foreground flex items-center gap-1 font-mono">
-                          <Calendar size={9} /> {formatDate(sess.last_interaction)}
+                        <div className="text-[10px] text-muted-foreground truncate mb-2">{sess.user_email}</div>
+                        <div className="text-[9px] text-muted-foreground flex items-center gap-1 font-mono justify-between">
+                          <span className="flex items-center gap-1"><Calendar size={9} /> {formatDate(sess.last_interaction)}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Right: Transcript view */}
-                <div className="lg:col-span-2 min-h-[350px] flex flex-col bg-muted/10 border border-border/30 rounded-2xl overflow-hidden p-4 relative justify-between">
+                {/* Right: Transcript view in chat bubbles format */}
+                <div className="lg:col-span-2 min-h-[440px] flex flex-col bg-slate-950/45 border border-border/30 rounded-2xl overflow-hidden p-4 relative justify-between">
                   {selectedSession ? (
-                    <div className="flex flex-col h-full justify-between gap-4">
+                    <div className="flex flex-col h-full justify-between gap-4 flex-grow">
                       {/* Transcript Header */}
-                      <div className="flex justify-between items-center border-b border-border/30 pb-3 mb-2">
+                      <div className="flex justify-between items-center border-b border-border/30 pb-3.5 mb-1.5 shrink-0 select-none">
                         <div>
-                          <h4 className="text-sm font-bold text-foreground">{selectedSession.user_name}</h4>
+                          <h4 className="text-sm font-bold text-foreground flex items-center gap-1.5">
+                            <User size={13} className="text-pink-500" />
+                            {selectedSession.user_name}
+                          </h4>
                           <p className="text-[10px] text-muted-foreground font-mono mt-0.5">Session: {selectedSession.session_id}</p>
                         </div>
-                        <div className="text-[10px] text-muted-foreground text-right font-mono">
-                          <div>Email: {selectedSession.user_email}</div>
+                        <div className="flex items-center gap-3">
+                          <div className="text-[10px] text-muted-foreground text-right font-mono hidden sm:block leading-tight">
+                            <div>Email: {selectedSession.user_email}</div>
+                            <div>Active: {formatDate(selectedSession.last_interaction)}</div>
+                          </div>
+                          <Button
+                            onClick={() => handleExportTranscript(selectedSession)}
+                            className="bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 text-pink-400 text-[10px] font-bold rounded-xl h-8 px-3 transition-all select-none uppercase tracking-wider flex items-center gap-1 shrink-0"
+                          >
+                            <Download size={11} /> Export
+                          </Button>
                         </div>
                       </div>
 
-                      {/* Transcripts dialogue stream */}
-                      <div className="flex-1 overflow-y-auto pr-1 max-h-[300px] space-y-3 text-xs sm:text-sm">
+                      {/* Dialogue Stream */}
+                      <div className="flex-grow overflow-y-auto pr-1.5 max-h-[310px] space-y-4 text-xs sm:text-sm">
                         {selectedSession.messages.map((m) => (
                           <div
                             key={m.id}
-                            className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2`}
+                            className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2.5`}
                           >
+                            {m.sender === "bot" && (
+                              <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-pink-500/30 mt-1">
+                                <Bot size={13} className="text-pink-400" />
+                              </div>
+                            )}
                             <div
-                              className={`px-3 py-2.5 rounded-xl max-w-[85%] leading-relaxed ${
+                              className={`px-4 py-3 rounded-[20px] max-w-[80%] leading-relaxed shadow-sm ${
                                 m.sender === "user"
-                                  ? "bg-pink-500/20 text-foreground border border-pink-500/30 rounded-tr-none"
-                                  : "bg-slate-900/60 border border-white/5 text-slate-200 rounded-tl-none"
+                                  ? "bg-pink-500/15 text-foreground border border-pink-500/25 rounded-tr-sm"
+                                  : "bg-slate-900 border border-white/5 text-slate-200 rounded-tl-sm"
                               }`}
                             >
-                              <div className="text-[9px] text-muted-foreground font-mono mb-1 font-semibold uppercase">
-                                {m.sender === "user" ? "User" : "AI Mascot"}
+                              <div className="text-[9px] text-muted-foreground font-mono mb-1 font-semibold uppercase select-none">
+                                {m.sender === "user" ? "User Client" : "Smarty Mascot"}
                               </div>
-                              <p className="whitespace-pre-wrap">{m.message}</p>
-                              <span className="text-[8px] text-muted-foreground/60 font-mono mt-1 block text-right">
+                              <p className="whitespace-pre-wrap leading-relaxed font-body">{m.message}</p>
+                              <span className="text-[8px] text-muted-foreground/60 font-mono mt-1.5 block text-right select-none">
                                 {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                               </span>
                             </div>
@@ -453,11 +513,11 @@ export const AdminInquiries = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center flex-grow text-muted-foreground p-6 text-center">
-                      <MessageSquare size={36} className="text-muted-foreground/40 mb-3" />
+                    <div className="flex flex-col items-center justify-center flex-grow text-muted-foreground p-6 text-center select-none">
+                      <MessageSquare size={36} className="text-muted-foreground/30 mb-3" />
                       <h4 className="text-sm font-semibold mb-1">Select a Conversation</h4>
-                      <p className="text-xs text-muted-foreground max-w-[250px] mx-auto">
-                        Click on any chat session from the list on the left to read its complete messaging history with Smarty.
+                      <p className="text-xs text-muted-foreground max-w-[270px] mx-auto leading-relaxed">
+                        Click on any client session card from the sidebar list to audit the complete chat transcript history with Smarty.
                       </p>
                     </div>
                   )}
@@ -470,4 +530,3 @@ export const AdminInquiries = () => {
     </div>
   );
 };
-export default AdminInquiries;

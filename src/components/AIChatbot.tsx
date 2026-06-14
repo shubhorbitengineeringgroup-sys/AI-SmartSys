@@ -1,5 +1,9 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, X, Send, Bot, Sparkles, User, FileText, CheckCircle, AlertCircle } from "lucide-react";
+import { 
+  MessageSquare, X, Send, Bot, Sparkles, User, FileText, CheckCircle, 
+  AlertCircle, Mic, MicOff, Volume2, VolumeX, Maximize2, Minimize2, 
+  Settings, Trash2, HelpCircle, ChevronRight, Briefcase, DollarSign, Clock 
+} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { askGemini, type GeminiMessage } from "@/lib/gemini";
 import { supabase } from "@/integrations/supabase/client";
@@ -7,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 interface Message {
   id: string;
@@ -16,19 +21,246 @@ interface Message {
 }
 
 type ChatMode = "chat" | "form-name" | "form-email" | "form-phone" | "form-message" | "form-submitting" | "form-complete";
+type TerminalTheme = "cyber-blue" | "matrix" | "holo-pink";
 
-const RobotFace = ({ expression, size = 40 }: { expression: "idle" | "typing" | "happy" | "winking"; size?: number }) => {
+// Theme configuration palette mapping
+const THEMES = {
+  "cyber-blue": {
+    bg: "bg-slate-950/80",
+    border: "border-white/10",
+    accent: "from-cyan-500 via-indigo-500 to-purple-600",
+    accentGlow: "shadow-[0_8px_32px_rgba(6,182,212,0.4)]",
+    accentLight: "from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-200 border-cyan-500/40 hover:border-cyan-400",
+    textAccent: "text-cyan-400",
+    textAccentLight: "text-cyan-300",
+    glow: "shadow-[0_0_50px_rgba(6,182,212,0.15)]",
+    bubbleUser: "bg-gradient-to-br from-cyan-500 to-indigo-600 text-white border-cyan-400/40 shadow-[0_4px_20px_rgba(6,182,212,0.3)]",
+    bubbleBot: "bg-slate-900/80 border border-white/5 text-slate-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
+    orbs: ["bg-cyan-500/20", "bg-purple-500/20"],
+    headerBorder: "via-cyan-500/50",
+    faceGlow: "drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]",
+    micGlow: "bg-cyan-500/20 border-cyan-500/50",
+    pulse: "bg-cyan-500"
+  },
+  "matrix": {
+    bg: "bg-black/95",
+    border: "border-emerald-500/20",
+    accent: "from-emerald-600 via-green-600 to-emerald-950",
+    accentGlow: "shadow-[0_8px_32px_rgba(16,185,129,0.4)]",
+    accentLight: "from-emerald-500/20 to-green-500/20 hover:from-emerald-500/30 hover:to-green-500/30 text-emerald-200 border-emerald-500/40 hover:border-emerald-400",
+    textAccent: "text-emerald-400",
+    textAccentLight: "text-emerald-300",
+    glow: "shadow-[0_0_55px_rgba(16,185,129,0.15)]",
+    bubbleUser: "bg-gradient-to-br from-emerald-600 to-green-800 text-green-100 border-emerald-500/40 font-mono shadow-[0_4px_20px_rgba(16,185,129,0.2)]",
+    bubbleBot: "bg-black border border-emerald-500/20 text-emerald-400 font-mono shadow-[0_4px_20px_rgba(0,0,0,0.5)]",
+    orbs: ["bg-emerald-500/10", "bg-green-600/10"],
+    headerBorder: "via-emerald-500/50",
+    faceGlow: "drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]",
+    micGlow: "bg-emerald-500/20 border-emerald-500/50",
+    pulse: "bg-emerald-500"
+  },
+  "holo-pink": {
+    bg: "bg-neutral-950/85",
+    border: "border-pink-500/10",
+    accent: "from-pink-500 via-rose-500 to-indigo-600",
+    accentGlow: "shadow-[0_8px_32px_rgba(236,72,153,0.4)]",
+    accentLight: "from-pink-500/20 to-rose-500/20 hover:from-pink-500/30 hover:to-rose-500/30 text-pink-200 border-pink-500/40 hover:border-pink-400",
+    textAccent: "text-pink-400",
+    textAccentLight: "text-pink-300",
+    glow: "shadow-[0_0_50px_rgba(236,72,153,0.15)]",
+    bubbleUser: "bg-gradient-to-br from-pink-500 to-rose-600 text-white border-pink-400/40 shadow-[0_4px_20px_rgba(236,72,153,0.3)]",
+    bubbleBot: "bg-neutral-900/80 border border-white/5 text-neutral-200 shadow-[0_4px_20px_rgba(0,0,0,0.3)]",
+    orbs: ["bg-pink-500/20", "bg-rose-500/20"],
+    headerBorder: "via-pink-500/50",
+    faceGlow: "drop-shadow-[0_0_15px_rgba(236,72,153,0.6)]",
+    micGlow: "bg-pink-500/20 border-pink-500/50",
+    pulse: "bg-pink-500"
+  }
+};
+
+// Canvas confetti particle animation
+const CanvasConfetti = () => {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animationId: number;
+    let width = (canvas.width = canvas.offsetWidth);
+    let height = (canvas.height = canvas.offsetHeight);
+
+    const colors = ["#06b6d4", "#3b82f6", "#a855f7", "#ec4899", "#10b981", "#f59e0b"];
+    const particles = Array.from({ length: 80 }).map(() => ({
+      x: Math.random() * width,
+      y: Math.random() * height - height,
+      size: Math.random() * 5 + 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      speedY: Math.random() * 2.5 + 2,
+      speedX: Math.random() * 2 - 1,
+      rotation: Math.random() * 360,
+      rotationSpeed: Math.random() * 3 - 1.5,
+    }));
+
+    const handleResize = () => {
+      if (canvas) {
+        width = canvas.width = canvas.offsetWidth;
+        height = canvas.height = canvas.offsetHeight;
+      }
+    };
+    window.addEventListener("resize", handleResize);
+
+    const update = () => {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.y += p.speedY;
+        p.x += p.speedX;
+        p.rotation += p.rotationSpeed;
+
+        if (p.y > height) {
+          p.y = -10;
+          p.x = Math.random() * width;
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rotation * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        if (p.size % 2 === 0) {
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        } else {
+          ctx.beginPath();
+          ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      });
+
+      animationId = requestAnimationFrame(update);
+    };
+
+    update();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none w-full h-full z-30" />;
+};
+
+// Copyable Code block component
+const CodeBlock = ({ code }: { code: string }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    toast.success("Code snippet copied!");
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className="drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]">
+    <div className="relative my-3.5 rounded-xl border border-white/10 bg-slate-950 font-mono text-[11px] overflow-hidden shadow-inner w-full max-w-full">
+      <div className="flex justify-between items-center bg-slate-900/50 px-3 py-1.5 border-b border-white/5 text-slate-400 select-none">
+        <span>Console Script</span>
+        <button
+          onClick={handleCopy}
+          className="text-[10px] hover:text-white px-2.5 py-0.5 rounded hover:bg-white/5 transition-all font-semibold uppercase tracking-wider"
+        >
+          {copied ? "Copied!" : "Copy"}
+        </button>
+      </div>
+      <pre className="p-3 overflow-x-auto text-slate-300 whitespace-pre scrollbar-thin scrollbar-thumb-white/10 max-w-full leading-relaxed">
+        <code>{code}</code>
+      </pre>
+    </div>
+  );
+};
+
+// Markdown text renderer helper
+const renderMessageText = (text: string) => {
+  if (!text) return "";
+
+  const codeBlockRegex = /```([\s\S]*?)```/g;
+  const parts = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = codeBlockRegex.exec(text)) !== null) {
+    const textBefore = text.substring(lastIndex, match.index);
+    if (textBefore) {
+      parts.push({ type: "text", content: textBefore });
+    }
+    parts.push({ type: "code-block", content: match[1] });
+    lastIndex = codeBlockRegex.lastIndex;
+  }
+
+  const textAfter = text.substring(lastIndex);
+  if (textAfter) {
+    parts.push({ type: "text", content: textAfter });
+  }
+
+  return parts.map((part, index) => {
+    if (part.type === "code-block") {
+      return <CodeBlock key={index} code={part.content.trim()} />;
+    }
+
+    return (
+      <span 
+        key={index} 
+        className="block space-y-1.5"
+        dangerouslySetInnerHTML={{ __html: parseMarkdownInline(part.content) }} 
+      />
+    );
+  });
+};
+
+const parseMarkdownInline = (text: string): string => {
+  let html = text;
+
+  // Escape HTML tags to prevent XSS
+  html = html
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  // Bold **text**
+  html = html.replace(/\*\*([\s\S]*?)\*\*/g, "<strong>$1</strong>");
+
+  // Italic *text*
+  html = html.replace(/\*([\s\S]*?)\*/g, "<em>$1</em>");
+
+  // Inline code `code`
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-900 border border-white/15 px-1 py-0.5 rounded text-cyan-300 font-mono text-[11px]">$1</code>');
+
+  // Bullet point list
+  html = html.replace(/^\s*-\s+(.+)$/gm, '<span class="flex items-start gap-1.5 pl-1.5"><span class="text-cyan-400 mt-1.5 shrink-0 w-1 h-1 rounded-full bg-cyan-400"></span><span>$1</span></span>');
+
+  // Line breaks
+  html = html.replace(/\n/g, "<br />");
+
+  return html;
+};
+
+// Robot Mascot SVG
+const RobotFace = ({ expression, size = 40, theme = "cyber-blue" }: { expression: "idle" | "typing" | "happy" | "winking" | "listening" | "speaking"; size?: number; theme?: TerminalTheme }) => {
+  const currentTheme = THEMES[theme];
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className={currentTheme.faceGlow}>
       <defs>
         {/* 3D Sphere Gradients */}
         <radialGradient id="ai-core" cx="35%" cy="35%" r="65%">
-          <stop offset="0%" stopColor="#c084fc" />
-          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="0%" stopColor={theme === "matrix" ? "#10b981" : theme === "holo-pink" ? "#ec4899" : "#c084fc"} />
+          <stop offset="50%" stopColor={theme === "matrix" ? "#047857" : theme === "holo-pink" ? "#be185d" : "#3b82f6"} />
           <stop offset="100%" stopColor="#0f172a" />
         </radialGradient>
         <radialGradient id="eye-glow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#67e8f9" />
+          <stop offset="0%" stopColor={theme === "matrix" ? "#a7f3d0" : theme === "holo-pink" ? "#fbcfe8" : "#67e8f9"} />
           <stop offset="100%" stopColor="transparent" />
         </radialGradient>
         <linearGradient id="metal-ring" x1="0" y1="0" x2="100" y2="100">
@@ -45,56 +277,98 @@ const RobotFace = ({ expression, size = 40 }: { expression: "idle" | "typing" | 
       <circle cx="50" cy="50" r="42" fill="url(#ai-core)" />
 
       {/* Floating Holographic Elements */}
-      <path d="M 20 50 Q 50 20 80 50 Q 50 80 20 50" fill="none" stroke="rgba(103,232,249,0.4)" strokeWidth="2" className="animate-[spin_10s_linear_infinite]" style={{ transformOrigin: "50% 50%" }} />
-      <path d="M 30 50 Q 50 30 70 50 Q 50 70 30 50" fill="none" stroke="rgba(103,232,249,0.6)" strokeWidth="1" className="animate-[spin_8s_linear_infinite_reverse]" style={{ transformOrigin: "50% 50%" }} />
+      <path d="M 20 50 Q 50 20 80 50 Q 50 80 20 50" fill="none" stroke="rgba(103,232,249,0.3)" strokeWidth="2" className="animate-[spin_12s_linear_infinite]" style={{ transformOrigin: "50% 50%" }} />
+      <path d="M 30 50 Q 50 30 70 50 Q 50 70 30 50" fill="none" stroke="rgba(103,232,249,0.5)" strokeWidth="1" className="animate-[spin_9s_linear_infinite_reverse]" style={{ transformOrigin: "50% 50%" }} />
+
+      {/* Antenna with blinking beacon */}
+      <line x1="50" y1="8" x2="50" y2="20" stroke="#94a3b8" strokeWidth="4" />
+      <circle cx="50" cy="8" r="4" fill={theme === "matrix" ? "#34d399" : theme === "holo-pink" ? "#f472b6" : "#67e8f9"} className="animate-pulse" />
 
       {/* Expression / Face */}
       {expression === "idle" && (
         <g>
-          <circle cx="35" cy="45" r="7" fill="#fff" />
-          <circle cx="65" cy="45" r="7" fill="#fff" />
-          <circle cx="35" cy="45" r="14" fill="url(#eye-glow)" />
-          <circle cx="65" cy="45" r="14" fill="url(#eye-glow)" />
-          <path d="M 40 65 Q 50 72 60 65" stroke="#67e8f9" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <circle cx="35" cy="48" r="6" fill="#fff" />
+          <circle cx="65" cy="48" r="6" fill="#fff" />
+          <circle cx="35" cy="48" r="12" fill="url(#eye-glow)" />
+          <circle cx="65" cy="48" r="12" fill="url(#eye-glow)" />
+          <path d="M 42 66 Q 50 71 58 66" stroke={theme === "matrix" ? "#34d399" : theme === "holo-pink" ? "#f472b6" : "#67e8f9"} strokeWidth="3" strokeLinecap="round" fill="none" />
+        </g>
+      )}
+      {expression === "listening" && (
+        <g>
+          <circle cx="35" cy="48" r="6" fill="#67e8f9" className="animate-ping" style={{ transformOrigin: "35% 48%" }} />
+          <circle cx="65" cy="48" r="6" fill="#67e8f9" className="animate-ping" style={{ transformOrigin: "65% 48%" }} />
+          <circle cx="35" cy="48" r="5" fill="#fff" />
+          <circle cx="65" cy="48" r="5" fill="#fff" />
+          <path d="M 35 66 C 40 60, 60 60, 65 66" stroke={theme === "matrix" ? "#34d399" : theme === "holo-pink" ? "#f472b6" : "#67e8f9"} strokeWidth="3" strokeLinecap="round" fill="none" className="animate-pulse" />
+        </g>
+      )}
+      {expression === "speaking" && (
+        <g>
+          <circle cx="35" cy="48" r="7" fill="#fff" />
+          <circle cx="65" cy="48" r="7" fill="#fff" />
+          {/* Speaking Equalizer waves for mouth */}
+          <line x1="42" y1="66" x2="42" y2="72" stroke="#67e8f9" strokeWidth="2.5" className="animate-pulse" />
+          <line x1="46" y1="64" x2="46" y2="74" stroke="#c084fc" strokeWidth="2.5" className="animate-bounce" />
+          <line x1="50" y1="63" x2="50" y2="75" stroke="#f472b6" strokeWidth="2.5" className="animate-pulse" />
+          <line x1="54" y1="64" x2="54" y2="74" stroke="#c084fc" strokeWidth="2.5" className="animate-bounce" />
+          <line x1="58" y1="66" x2="58" y2="72" stroke="#67e8f9" strokeWidth="2.5" className="animate-pulse" />
         </g>
       )}
       {expression === "typing" && (
         <g>
-          <ellipse cx="35" cy="45" rx="8" ry="3" fill="#fde047" className="animate-pulse" />
-          <ellipse cx="65" cy="45" rx="8" ry="3" fill="#fde047" className="animate-pulse" />
-          <circle cx="50" cy="65" r="4" fill="#fde047" className="animate-pulse" />
+          <ellipse cx="35" cy="48" rx="8" ry="2" fill="#fde047" className="animate-pulse" />
+          <ellipse cx="65" cy="48" rx="8" ry="2" fill="#fde047" className="animate-pulse" />
+          <circle cx="50" cy="67" r="3" fill="#fde047" className="animate-pulse" />
         </g>
       )}
       {expression === "happy" && (
         <g>
-          <path d="M 28 48 Q 35 38 42 48" stroke="#fff" strokeWidth="4" strokeLinecap="round" fill="none" />
-          <path d="M 58 48 Q 65 38 72 48" stroke="#fff" strokeWidth="4" strokeLinecap="round" fill="none" />
-          <path d="M 35 60 Q 50 75 65 60" stroke="#f472b6" strokeWidth="4" strokeLinecap="round" fill="none" />
+          <path d="M 28 50 Q 35 40 42 50" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+          <path d="M 58 50 Q 65 40 72 50" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+          <path d="M 35 63 Q 50 78 65 63" stroke={theme === "holo-pink" ? "#f472b6" : theme === "matrix" ? "#34d399" : "#ff007f"} strokeWidth="4.5" strokeLinecap="round" fill="none" />
         </g>
       )}
       {expression === "winking" && (
         <g>
-          <circle cx="35" cy="45" r="7" fill="#fff" />
-          <circle cx="35" cy="45" r="14" fill="url(#eye-glow)" />
-          <path d="M 58 45 L 72 45" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
-          <path d="M 40 65 Q 50 72 60 65" stroke="#f472b6" strokeWidth="3" strokeLinecap="round" fill="none" />
+          <circle cx="35" cy="48" r="6" fill="#fff" />
+          <circle cx="35" cy="48" r="12" fill="url(#eye-glow)" />
+          <path d="M 58 48 L 72 48" stroke="#fff" strokeWidth="4.5" strokeLinecap="round" />
+          <path d="M 40 66 Q 50 73 60 66" stroke={theme === "holo-pink" ? "#f472b6" : theme === "matrix" ? "#34d399" : "#67e8f9"} strokeWidth="3" strokeLinecap="round" fill="none" />
         </g>
       )}
       
       {/* Highlighting curve for 3D sphere effect */}
-      <path d="M 15 50 A 35 35 0 0 1 50 15 A 35 35 0 0 1 85 50" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" fill="none" />
+      <path d="M 15 50 A 35 35 0 0 1 50 15 A 35 35 0 0 1 85 50" stroke="rgba(255,255,255,0.45)" strokeWidth="2.5" strokeLinecap="round" fill="none" />
     </svg>
   );
 };
 
 export const AIChatbot = () => {
+  const { isAuthenticated, user } = useAuth();
+  
   const [isOpen, setIsOpen] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [expression, setExpression] = useState<"idle" | "typing" | "happy" | "winking">("idle");
+  const [expression, setExpression] = useState<"idle" | "typing" | "happy" | "winking" | "listening" | "speaking">("idle");
   const [sessionId, setSessionId] = useState("");
   const [hasNewMessages, setHasNewMessages] = useState(false);
+  const [terminalTheme, setTerminalTheme] = useState<TerminalTheme>("cyber-blue");
+  
+  // Audio state
+  const [isListening, setIsListening] = useState(false);
+  const [isSpeakingEnabled, setIsSpeakingEnabled] = useState(false);
+  
+  // Dropdowns & Modals
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Project Brief Form Builder State (Dashboard panel)
+  const [briefService, setBriefService] = useState("Website Design & Development");
+  const [briefBudget, setBriefBudget] = useState("$1,000 - $5,000");
+  const [briefTimeline, setBriefTimeline] = useState("2-3 Months");
+  const [briefDetails, setBriefDetails] = useState("");
 
   // Requirement Form State
   const [mode, setMode] = useState<ChatMode>("chat");
@@ -108,6 +382,9 @@ export const AIChatbot = () => {
   const [formError, setFormError] = useState("");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<any>(null);
+
+  const colors = THEMES[terminalTheme];
 
   // Initialize Session ID
   useEffect(() => {
@@ -118,7 +395,77 @@ export const AIChatbot = () => {
     }
     setSessionId(sid);
 
-    // Initial Welcome Message
+    // Initial default theme load from local storage
+    const storedTheme = localStorage.getItem("smarty_chat_theme");
+    if (storedTheme && (storedTheme === "cyber-blue" || storedTheme === "matrix" || storedTheme === "holo-pink")) {
+      setTerminalTheme(storedTheme as TerminalTheme);
+    }
+  }, []);
+
+  // Fetch / Migrate conversation logs based on Auth Status
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const syncHistory = async () => {
+      if (isAuthenticated && user?.email) {
+        try {
+          // 1. Migrate any guest messages generated in current session to the logged-in user
+          await supabase
+            .from("chat_messages")
+            .update({ user_email: user.email, user_name: user.name || user.email.split("@")[0] })
+            .eq("session_id", sessionId);
+
+          // 2. Load user's complete history across all sessions
+          const { data, error } = await supabase
+            .from("chat_messages")
+            .select("*")
+            .eq("user_email", user.email)
+            .order("created_at", { ascending: true });
+
+          if (error) throw error;
+
+          if (data && data.length > 0) {
+            const formatted = data.map((d: any) => ({
+              id: d.id,
+              sender: d.sender as "user" | "bot",
+              text: d.message,
+              timestamp: new Date(d.created_at)
+            }));
+            setMessages(formatted);
+          } else {
+            loadDefaultWelcome();
+          }
+        } catch (err) {
+          console.warn("Could not retrieve profile transcripts, using local logs.", err);
+          loadLocalHistory();
+        }
+      } else {
+        loadLocalHistory();
+      }
+    };
+
+    syncHistory();
+  }, [isAuthenticated, user, sessionId]);
+
+  // Load message logs from local storage (Fallback/Guest)
+  const loadLocalHistory = () => {
+    const local = localStorage.getItem(`smarty_chat_logs_${sessionId}`);
+    if (local) {
+      try {
+        const parsed = JSON.parse(local).map((m: any) => ({
+          ...m,
+          timestamp: new Date(m.timestamp)
+        }));
+        setMessages(parsed);
+      } catch {
+        loadDefaultWelcome();
+      }
+    } else {
+      loadDefaultWelcome();
+    }
+  };
+
+  const loadDefaultWelcome = () => {
     setMessages([
       {
         id: "welcome",
@@ -127,14 +474,21 @@ export const AIChatbot = () => {
         timestamp: new Date()
       }
     ]);
-  }, []);
+  };
 
-  // Scroll to bottom
+  // Sync state to local storage when guest messages change
+  useEffect(() => {
+    if (sessionId && !isAuthenticated && messages.length > 0) {
+      localStorage.setItem(`smarty_chat_logs_${sessionId}`, JSON.stringify(messages));
+    }
+  }, [messages, isAuthenticated, sessionId]);
+
+  // Scroll stream
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping, mode]);
 
-  // Alert user of new message when closed
+  // Alert new messages
   useEffect(() => {
     if (!isOpen && messages.length > 1) {
       setHasNewMessages(true);
@@ -147,33 +501,124 @@ export const AIChatbot = () => {
       setHasNewMessages(false);
       setExpression("winking");
       setTimeout(() => setExpression("idle"), 1200);
+    } else {
+      setIsMaximized(false);
+      // Cancel speech if closing
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
     }
   };
 
-  // Save Message to Supabase (Non-blocking)
-  const saveMessageToDatabase = async (sender: "user" | "bot", text: string, name?: string, email?: string) => {
+  // Voice synthesis text-to-speech reader
+  const speakReply = (text: string) => {
+    if (!isSpeakingEnabled || typeof window === "undefined" || !window.speechSynthesis) return;
+
+    window.speechSynthesis.cancel();
+
+    // Clean markdown and emojis
+    const clean = text
+      .replace(/\*[\s\S]*?\*/g, "") // remove robotic expressions *beep*
+      .replace(/[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDC00-\uDFFF]/g, ""); // remove emojis
+
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.pitch = 1.35; 
+    utterance.rate = 1.05;
+
+    const voices = window.speechSynthesis.getVoices();
+    const targetVoice = voices.find(v => v.lang.startsWith("en") && v.name.includes("Google"));
+    if (targetVoice) utterance.voice = targetVoice;
+
+    utterance.onstart = () => setExpression("speaking");
+    utterance.onend = () => setExpression("idle");
+    utterance.onerror = () => setExpression("idle");
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Voice recognition speech-to-text capturer
+  const toggleSpeechInput = () => {
+    if (typeof window === "undefined") return;
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      toast.error("Speech recognition is not supported in this browser version.");
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) recognitionRef.current.stop();
+      setIsListening(false);
+      setExpression("idle");
+      return;
+    }
+
     try {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = "en-IN";
+
+      rec.onstart = () => {
+        setIsListening(true);
+        setExpression("listening");
+        toast.info("Listening... Speak clearly.");
+      };
+
+      rec.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setInputText(prev => prev + (prev ? " " : "") + transcript);
+        toast.success("Voice text added!");
+      };
+
+      rec.onerror = (event: any) => {
+        console.error("Speech Recognition error:", event.error);
+        setIsListening(false);
+        setExpression("idle");
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+        setExpression("idle");
+      };
+
+      recognitionRef.current = rec;
+      rec.start();
+    } catch (err) {
+      console.error("Speech initialization error:", err);
+      setIsListening(false);
+      setExpression("idle");
+    }
+  };
+
+  // Save conversation log in database (Supabase)
+  const saveMessageToDatabase = async (sender: "user" | "bot", text: string) => {
+    try {
+      const dbUserEmail = isAuthenticated && user?.email ? user.email : (reqForm.email || null);
+      const dbUserName = isAuthenticated && user?.name ? user.name : (reqForm.name || null);
+
       const { error } = await supabase.from("chat_messages").insert({
         session_id: sessionId,
         sender,
         message: text,
-        user_name: name || reqForm.name || null,
-        user_email: email || reqForm.email || null
+        user_name: dbUserName,
+        user_email: dbUserEmail
       });
-      if (error) console.error("Database save failed:", error.message);
+      if (error) console.error("Database sync log failed:", error.message);
     } catch (err) {
-      // Ignore database errors, keep chatbot functional
-      console.warn("Supabase is offline or unconfigured, skipped saving message.");
+      console.warn("Supabase client is offline, message saved locally.");
     }
   };
 
-  // Submit contact requirements form to Supabase
+  // Submit guided client requirements form
   const submitRequirementsToDatabase = async (finalMessage: string) => {
-    const messageBody = `[Submitted via Chatbot Form]\nProject Requirements: ${finalMessage}`;
+    const messageBody = `[Submitted via Chatbot Guided Form]\nProject Requirements: ${finalMessage}`;
     try {
+      const dbUserEmail = isAuthenticated && user?.email ? user.email : reqForm.email;
+      const dbUserName = isAuthenticated && user?.name ? user.name : reqForm.name;
+
       const { error } = await supabase.from("contact_submissions").insert({
-        name: reqForm.name,
-        email: reqForm.email,
+        name: dbUserName || "Anonymous Form User",
+        email: dbUserEmail || "N/A",
         phone: reqForm.phone || "Not provided",
         message: messageBody,
         source: "ai_chatbot",
@@ -182,21 +627,19 @@ export const AIChatbot = () => {
       if (error) throw error;
       toast.success("Requirements submitted successfully! Our team will contact you.");
     } catch (err: any) {
-      console.error("Requirements submission failed:", err);
-      // Local fallback success toast to maintain premium UX even if DB keys aren't set
-      toast.success("Inquiry noted! (Demo submission successful)");
+      console.error("Supabase Submission Error:", err);
+      toast.success("Requirements logged successfully (Demo Submission).");
     }
   };
 
-  // Handle Chat Mode submissions
-  const handleChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Handle message submissions
+  const handleChatSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!inputText.trim()) return;
 
     const userText = inputText;
     setInputText("");
 
-    // Add user message
     const userMsg: Message = {
       id: `user-${Date.now()}`,
       sender: "user",
@@ -206,11 +649,9 @@ export const AIChatbot = () => {
     setMessages(prev => [...prev, userMsg]);
     saveMessageToDatabase("user", userText);
 
-    // Trigger bot typing
     setIsTyping(true);
     setExpression("typing");
 
-    // Format history for Gemini API
     const geminiHistory: GeminiMessage[] = messages
       .filter(m => m.id !== "welcome")
       .map(m => ({
@@ -218,12 +659,11 @@ export const AIChatbot = () => {
         parts: [{ text: m.text }]
       }));
 
-    // Call Gemini
     const botReply = await askGemini(userText, geminiHistory);
 
     setIsTyping(false);
     setExpression("happy");
-    setTimeout(() => setExpression("idle"), 1500);
+    setTimeout(() => setExpression("idle"), 1400);
 
     const botMsg: Message = {
       id: `bot-${Date.now()}`,
@@ -233,9 +673,11 @@ export const AIChatbot = () => {
     };
     setMessages(prev => [...prev, botMsg]);
     saveMessageToDatabase("bot", botReply);
+
+    // Speak response if toggled
+    speakReply(botReply);
   };
 
-  // Handle suggestion chips
   const handleChipClick = (chipText: string) => {
     if (chipText.toLowerCase().includes("requirement")) {
       startRequirementForm();
@@ -244,7 +686,7 @@ export const AIChatbot = () => {
     }
   };
 
-  // Guided Chat Form Flow
+  // Guided wizard flow
   const startRequirementForm = () => {
     setMode("form-name");
     setFormInputVal("");
@@ -254,7 +696,7 @@ export const AIChatbot = () => {
       {
         id: `sys-${Date.now()}`,
         sender: "bot",
-        text: "Beep boop! Let's get your details so our team can contact you. What is your full name? 📝",
+        text: "Beep boop! Let's build your project configuration. What is your full name? 📝",
         timestamp: new Date()
       }
     ]);
@@ -274,7 +716,7 @@ export const AIChatbot = () => {
       setMessages(prev => [
         ...prev,
         { id: `user-name-${Date.now()}`, sender: "user", text: val, timestamp: new Date() },
-        { id: `bot-q-email-${Date.now()}`, sender: "bot", text: `Awesome, ${val}! What is your email address? 📧`, timestamp: new Date() }
+        { id: `bot-q-email-${Date.now()}`, sender: "bot", text: `Got it, ${val}! What is your email address? 📧`, timestamp: new Date() }
       ]);
       setMode("form-email");
       setFormInputVal("");
@@ -290,7 +732,7 @@ export const AIChatbot = () => {
       setMessages(prev => [
         ...prev,
         { id: `user-email-${Date.now()}`, sender: "user", text: val, timestamp: new Date() },
-        { id: `bot-q-phone-${Date.now()}`, sender: "bot", text: "Got it! What is your phone number? (Type 'skip' if you wish to skip) 📞", timestamp: new Date() }
+        { id: `bot-q-phone-${Date.now()}`, sender: "bot", text: "Excellent! What is your phone number? (Type 'skip' to bypass) 📞", timestamp: new Date() }
       ]);
       setMode("form-phone");
       setFormInputVal("");
@@ -305,7 +747,7 @@ export const AIChatbot = () => {
       if (!isSkip) {
         const digits = val.replace(/[^0-9]/g, "");
         if (digits.length < 10 || digits.length > 15) {
-          setFormError("Phone number must contain between 10 and 15 digits, or type 'skip'.");
+          setFormError("Phone number must contain between 10 and 15 digits.");
           return;
         }
       }
@@ -314,7 +756,7 @@ export const AIChatbot = () => {
       setMessages(prev => [
         ...prev,
         { id: `user-phone-${Date.now()}`, sender: "user", text: val, timestamp: new Date() },
-        { id: `bot-q-msg-${Date.now()}`, sender: "bot", text: "Lastly, what project requirements or questions would you like to submit? (Minimum 100 characters required) 📝", timestamp: new Date() }
+        { id: `bot-q-msg-${Date.now()}`, sender: "bot", text: "Lastly, what project requirements or questions would you like to submit? (Provide at least 100 characters) 📝", timestamp: new Date() }
       ]);
       setMode("form-message");
       setFormInputVal("");
@@ -322,14 +764,13 @@ export const AIChatbot = () => {
     
     else if (mode === "form-message") {
       if (val.length < 100) {
-        setFormError(`Please describe your requirements in at least 100 characters. Currently ${val.length}/100.`);
+        setFormError(`Describe requirements in at least 100 characters. Currently ${val.length}/100.`);
         return;
       }
       
       setMode("form-submitting");
       setExpression("typing");
       
-      // Complete state updates & submit
       const updatedForm = { ...reqForm, message: val };
       setReqForm(updatedForm);
 
@@ -340,15 +781,14 @@ export const AIChatbot = () => {
 
       setTimeout(async () => {
         await submitRequirementsToDatabase(val);
-        // Log form completeness in chat audit
-        saveMessageToDatabase("user", `[FORM SUBMISSION] Name: ${updatedForm.name}, Email: ${updatedForm.email}, Phone: ${updatedForm.phone}, Message: ${val}`, updatedForm.name, updatedForm.email);
+        saveMessageToDatabase("user", `[FORM SUBMISSION] Name: ${updatedForm.name}, Email: ${updatedForm.email}, Phone: ${updatedForm.phone}, Message: ${val}`);
         
         setMessages(prev => [
           ...prev,
           {
             id: `bot-complete-${Date.now()}`,
             sender: "bot",
-            text: `Perfect, ${updatedForm.name}! I have transmitted your requirements to our main brain. 🚀 We will reach out to you at ${updatedForm.email} shortly! *excited beep boop*`,
+            text: `Perfect! I have sent your requirements to our main brain. 🚀 We will reach out to you at ${updatedForm.email} shortly! *excited beep boop*`,
             timestamp: new Date()
           }
         ]);
@@ -366,7 +806,7 @@ export const AIChatbot = () => {
       {
         id: `sys-cancel-${Date.now()}`,
         sender: "bot",
-        text: "Form cancelled. We are back in general chat! Ask me anything. *beeps*",
+        text: "Form cancelled. Back in general chat mode! Ask me anything. *beeps*",
         timestamp: new Date()
       }
     ]);
@@ -377,272 +817,522 @@ export const AIChatbot = () => {
     setExpression("idle");
   };
 
+  const clearChatHistory = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`smarty_chat_logs_${sessionId}`);
+    }
+    loadDefaultWelcome();
+    setIsSettingsOpen(false);
+    toast.success("Conversation history cleared!");
+  };
+
+  const handleThemeChange = (theme: TerminalTheme) => {
+    setTerminalTheme(theme);
+    localStorage.setItem("smarty_chat_theme", theme);
+    toast.success(`Theme updated to ${theme.replace("-", " ")}!`);
+  };
+
+  // Generate automated brief from dashboard
+  const handleGenerateBrief = () => {
+    if (!briefDetails.trim()) {
+      toast.error("Please add some project description first.");
+      return;
+    }
+    const brief = `Hi Smarty! I want to submit a project brief:\n- **Service**: ${briefService}\n- **Budget**: ${briefBudget}\n- **Timeline**: ${briefTimeline}\n- **Description**: ${briefDetails}\nCan you review this client requirement?`;
+    setInputText(brief);
+    setBriefDetails("");
+    toast.success("Brief copied into chat input! Press Send to initiate audit.");
+  };
+
   return (
-    <div className="fixed bottom-6 left-6 z-50 select-none">
+    <div className={`fixed z-50 select-none ${isMaximized ? "inset-0 flex items-center justify-center p-4" : "bottom-6 left-6"}`}>
       {/* 1. Chatbot Floating Trigger Button */}
-      <button
-        onClick={toggleChat}
-        className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 hover:scale-110 shadow-[0_8px_32px_rgba(6,182,212,0.4)] bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 border border-white/30 group ${
-          isOpen ? "rotate-90" : ""
-        }`}
-      >
-        {/* Floating Ring Glow */}
-        <span className="absolute inset-0 rounded-full bg-cyan-400 opacity-30 group-hover:scale-125 transition-transform duration-500 animate-ping" />
-        
-        {isOpen ? (
-          <X size={26} className="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
-        ) : (
+      {!isOpen && (
+        <button
+          onClick={toggleChat}
+          className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 hover:scale-110 bg-gradient-to-r ${colors.accent} border border-white/30 group ${colors.accentGlow}`}
+        >
+          <span className={`absolute inset-0 rounded-full ${colors.pulse} opacity-30 group-hover:scale-125 transition-transform duration-500 animate-ping`} />
           <div className="relative animate-float">
-            <RobotFace expression={hasNewMessages ? "happy" : "idle"} size={44} />
+            <RobotFace expression={hasNewMessages ? "happy" : "idle"} size={44} theme={terminalTheme} />
             {hasNewMessages && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-pink-500 border-[3px] border-indigo-600 animate-bounce shadow-[0_0_10px_rgba(236,72,153,0.8)]" />
             )}
           </div>
-        )}
-      </button>
+        </button>
+      )}
 
       {/* 2. Chatbot Window Panel */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            initial={isMaximized ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.9 }}
+            exit={isMaximized ? { opacity: 0, scale: 0.95 } : { opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="absolute bottom-20 left-0 w-[92vw] sm:w-[380px] h-[550px] rounded-[24px] bg-slate-950/80 backdrop-blur-2xl border border-white/10 shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col overflow-hidden text-left ring-1 ring-white/5"
+            className={`rounded-[24px] ${colors.bg} backdrop-blur-2xl border ${colors.border} ${colors.glow} flex overflow-hidden text-left ring-1 ring-white/5 relative z-40 ${
+              isMaximized 
+                ? "w-full max-w-5xl h-[85vh] flex-row" 
+                : "w-[92vw] sm:w-[380px] h-[550px] flex-col"
+            }`}
           >
-            {/* Header */}
-            <div className="relative p-4 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 flex items-center justify-between z-20">
-              {/* Bottom glowing line */}
-              <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
-              <div className="flex items-center gap-3">
-                <div className="bg-slate-950/80 rounded-full p-1 border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.4)]">
-                  <RobotFace expression={expression} size={42} />
+            {/* Split Screen Layout for Maximized dashboard */}
+            <div className={`flex flex-col h-full relative z-10 ${isMaximized ? "w-full md:w-1/2 border-r border-white/5" : "w-full"}`}>
+              {/* Header */}
+              <div className="relative p-4 bg-slate-900/40 backdrop-blur-xl border-b border-white/5 flex items-center justify-between z-20 shrink-0">
+                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent to-transparent" style={{ backgroundImage: `linear-gradient(90deg, transparent, var(--tw-gradient-stops), transparent)` }} />
+                <div className="flex items-center gap-3">
+                  <div className="bg-slate-950/80 rounded-full p-1 border border-cyan-500/30">
+                    <RobotFace expression={expression} size={42} theme={terminalTheme} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm font-heading font-black text-white uppercase tracking-wider">Smarty</span>
+                      <span className={`text-[10px] bg-cyan-500/10 px-1.5 py-0.2 rounded-full border border-cyan-500/20 font-mono animate-pulse ${colors.textAccentLight}`}>
+                        AI Mascot
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      <span className="text-[10px] text-slate-400 font-mono">
+                        {isAuthenticated && user?.email ? `${user.name || "User"} online` : "Beep boop online"}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-heading font-black text-white uppercase tracking-wider">Smarty</span>
-                    <span className="text-[10px] bg-cyan-500/20 text-cyan-300 px-1.5 py-0.2 rounded-full border border-cyan-500/30 animate-pulse font-mono">
-                      AI Client
-                    </span>
+
+                <div className="flex items-center gap-1">
+                  {/* Speech output reader toggle */}
+                  <button
+                    onClick={() => {
+                      setIsSpeakingEnabled(!isSpeakingEnabled);
+                      if (isSpeakingEnabled && typeof window !== "undefined" && window.speechSynthesis) {
+                        window.speechSynthesis.cancel();
+                      }
+                      toast.success(isSpeakingEnabled ? "Voice output disabled." : "Voice output enabled!");
+                    }}
+                    className={`p-1.5 rounded-xl transition-all ${isSpeakingEnabled ? "text-cyan-400 bg-cyan-500/10" : "text-slate-400 hover:text-white"}`}
+                    title="Toggle Text-to-Speech"
+                  >
+                    {isSpeakingEnabled ? <Volume2 size={16} /> : <VolumeX size={16} />}
+                  </button>
+
+                  {/* Settings toggle */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                      className={`p-1.5 rounded-xl text-slate-400 hover:text-white transition-all ${isSettingsOpen ? "bg-white/5" : ""}`}
+                      title="Settings"
+                    >
+                      <Settings size={16} />
+                    </button>
+                    
+                    {/* Settings Dropdown menu */}
+                    <AnimatePresence>
+                      {isSettingsOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 5 }}
+                          className="absolute right-0 mt-2 w-44 rounded-xl bg-slate-900/95 border border-white/10 p-2.5 shadow-2xl z-50 text-[11px] space-y-2.5"
+                        >
+                          <div className="font-semibold text-slate-400 border-b border-white/5 pb-1">CONSOLE THEME</div>
+                          <div className="flex flex-col gap-1">
+                            <button onClick={() => handleThemeChange("cyber-blue")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "cyber-blue" ? "text-cyan-400 bg-white/5" : "text-slate-300 hover:bg-white/5"}`}>Cyber Blue</button>
+                            <button onClick={() => handleThemeChange("matrix")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "matrix" ? "text-emerald-400 bg-white/5" : "text-slate-300 hover:bg-white/5"}`}>Matrix Terminal</button>
+                            <button onClick={() => handleThemeChange("holo-pink")} className={`w-full text-left px-2 py-1 rounded transition-colors ${terminalTheme === "holo-pink" ? "text-pink-400 bg-white/5" : "text-slate-300 hover:bg-white/5"}`}>Holo Pink</button>
+                          </div>
+                          <div className="border-t border-white/5 pt-2">
+                            <button 
+                              onClick={clearChatHistory} 
+                              className="w-full text-left px-2 py-1.5 rounded text-pink-400 hover:bg-pink-500/10 transition-colors flex items-center gap-1.5"
+                            >
+                              <Trash2 size={12} /> Clear Chat history
+                            </button>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    <span className="text-[10px] text-slate-400 font-mono">Beep boop online</span>
-                  </div>
+
+                  {/* Window Maximize / Minimize toggle */}
+                  <button
+                    onClick={() => setIsMaximized(!isMaximized)}
+                    className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors hidden md:block"
+                    title={isMaximized ? "Exit Dashboard Mode" : "Expand to Dashboard"}
+                  >
+                    {isMaximized ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                  </button>
+
+                  <button
+                    onClick={toggleChat}
+                    className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={toggleChat}
-                className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-white/5 transition-colors"
-              >
-                <X size={18} />
-              </button>
-            </div>
 
-            {/* Background Grid */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0" style={{ backgroundImage: "linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(90deg, #06b6d4 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
-            
-            {/* Glowing Orbs in background */}
-            <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-cyan-500/20 rounded-full blur-[60px] pointer-events-none z-0" />
-            <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-purple-500/20 rounded-full blur-[70px] pointer-events-none z-0" />
+              {/* Background patterns */}
+              <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-0" style={{ backgroundImage: "linear-gradient(#06b6d4 1px, transparent 1px), linear-gradient(90deg, #06b6d4 1px, transparent 1px)", backgroundSize: "20px 20px" }} />
+              <div className={`absolute top-1/4 left-1/4 w-32 h-32 ${colors.orbs[0]} rounded-full blur-[60px] pointer-events-none z-0`} />
+              <div className={`absolute bottom-1/4 right-1/4 w-40 h-40 ${colors.orbs[1]} rounded-full blur-[70px] pointer-events-none z-0`} />
 
-            {/* Messages Stream */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-cyan-500/20 z-10 relative">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2.5`}
-                >
-                  {m.sender === "bot" && (
-                    <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
-                      <Bot size={14} className="text-cyan-400" />
-                    </div>
-                  )}
+              {/* Canvas Confetti on complete */}
+              {mode === "form-complete" && <CanvasConfetti />}
+
+              {/* Messages dialogue stream */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-cyan-500/20 z-10 relative">
+                {messages.map((m) => (
                   <div
-                    className={`max-w-[82%] px-4 py-3 text-[13px] sm:text-sm leading-relaxed tracking-wide ${
-                      m.sender === "user"
-                        ? "bg-gradient-to-br from-cyan-500 to-indigo-600 text-white rounded-[20px] rounded-br-sm shadow-[0_4px_20px_rgba(6,182,212,0.3)] border border-cyan-400/40"
-                        : "bg-slate-900/80 backdrop-blur-md border border-white/5 text-slate-200 rounded-[20px] rounded-tl-sm shadow-[0_4px_20px_rgba(0,0,0,0.3)] inset-shadow-sm"
-                    }`}
+                    key={m.id}
+                    className={`flex ${m.sender === "user" ? "justify-end" : "justify-start"} items-start gap-2.5`}
                   >
-                    {m.text}
-                  </div>
-                  {m.sender === "user" && (
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)] mt-1">
-                      <User size={14} className="text-white" />
+                    {m.sender === "bot" && (
+                      <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
+                        <Bot size={13} className={colors.textAccent} />
+                      </div>
+                    )}
+                    <div
+                      className={`max-w-[82%] px-4 py-3 text-[13px] sm:text-sm leading-relaxed tracking-wide rounded-[20px] ${
+                        m.sender === "user"
+                          ? `${colors.bubbleUser} rounded-br-sm`
+                          : `${colors.bubbleBot} rounded-tl-sm`
+                      }`}
+                    >
+                      {renderMessageText(m.text)}
+                      <span className="text-[8px] text-slate-400 font-mono block text-right mt-1.5 font-light select-none">
+                        {m.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {m.sender === "user" && (
+                      <div className={`w-7 h-7 rounded-full bg-gradient-to-br ${colors.accent} flex items-center justify-center shrink-0 shadow-[0_0_10px_rgba(6,182,212,0.3)] mt-1`}>
+                        <User size={13} className="text-white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
 
-              {isTyping && (
-                <div className="flex justify-start items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
-                    <Bot size={14} className="text-cyan-400" />
+                {isTyping && (
+                  <div className="flex justify-start items-center gap-2.5">
+                    <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center shrink-0 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)] mt-1">
+                      <Bot size={13} className={colors.textAccent} />
+                    </div>
+                    <div className="bg-slate-900/80 backdrop-blur-md border border-white/5 px-5 py-3.5 rounded-[20px] rounded-tl-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
+                      <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-[bounce_1s_infinite_0ms]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-[bounce_1s_infinite_150ms]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-[bounce_1s_infinite_300ms]" />
+                    </div>
                   </div>
-                  <div className="bg-slate-900/80 backdrop-blur-md border border-white/5 px-5 py-3.5 rounded-[20px] rounded-tl-sm flex items-center gap-2 shadow-[0_4px_20px_rgba(0,0,0,0.3)]">
-                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-[bounce_1s_infinite_0ms]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-[bounce_1s_infinite_150ms]" />
-                    <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-[bounce_1s_infinite_300ms]" />
-                  </div>
+                )}
+                <div ref={chatEndRef} />
+              </div>
+
+              {/* Quick Actions (Suggestion chips) */}
+              {mode === "chat" && !isTyping && (
+                <div className="px-4 py-3 flex gap-2 overflow-x-auto shrink-0 select-none no-scrollbar border-t border-white/5 bg-slate-950/40 backdrop-blur-md scrollbar-none relative z-20">
+                  <button
+                    onClick={() => handleChipClick("Submit Requirements 📝")}
+                    className={`shrink-0 text-[10px] sm:text-xs font-semibold py-1.5 px-3 rounded-full bg-gradient-to-r ${colors.accentLight}`}
+                  >
+                    <FileText size={10} className="mr-1 inline" /> Submit Requirements
+                  </button>
+                  <button
+                    onClick={() => handleChipClick("Website Designing & UI/UX 🎨")}
+                    className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
+                  >
+                    Website UI/UX
+                  </button>
+                  <button
+                    onClick={() => handleChipClick("Website Development & Systems 💻")}
+                    className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
+                  >
+                    Web Development
+                  </button>
+                  <button
+                    onClick={() => handleChipClick("Custom Automation Software ⚙️")}
+                    className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
+                  >
+                    Custom Software
+                  </button>
                 </div>
               )}
-              <div ref={chatEndRef} />
-            </div>
 
-            {/* Quick Actions (Suggestion chips) */}
-            {mode === "chat" && !isTyping && (
-              <div className="px-4 py-3 flex gap-2 overflow-x-auto shrink-0 select-none no-scrollbar border-t border-white/5 bg-slate-950/40 backdrop-blur-md scrollbar-none relative z-20">
-                <button
-                  onClick={() => handleChipClick("Submit Requirements 📝")}
-                  className="shrink-0 text-[10px] sm:text-xs font-semibold py-1.5 px-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-200 border border-cyan-500/40 hover:border-cyan-400 transition-all flex items-center gap-1 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
-                >
-                  <FileText size={10} /> Submit Requirements
-                </button>
-                <button
-                  onClick={() => handleChipClick("Website Designing & UI/UX 🎨")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
-                >
-                  Website UI/UX
-                </button>
-                <button
-                  onClick={() => handleChipClick("Website Development & Systems 💻")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
-                >
-                  Web Development
-                </button>
-                <button
-                  onClick={() => handleChipClick("Custom Automation Software ⚙️")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
-                >
-                  Custom Software
-                </button>
-                <button
-                  onClick={() => handleChipClick("Bulk SMS Services & Marketing 💬")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all"
-                >
-                  Bulk SMS
-                </button>
-                <button
-                  onClick={() => handleChipClick("SEO Optimization & Visibility 📈")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all"
-                >
-                  SEO Solutions
-                </button>
-              </div>
-            )}
-
-            {/* Form Input Area */}
-            <div className="p-4 bg-slate-950/60 backdrop-blur-xl border-t border-white/5 shrink-0 relative z-20">
-              {mode === "chat" ? (
-                /* Regular Chat input */
-                <form onSubmit={handleChatSubmit} className="flex gap-2">
-                  <Input
-                    value={inputText}
-                    onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Ask Smarty something..."
-                    disabled={isTyping}
-                    className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-12 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all"
-                  />
-                  <Button
-                    type="submit"
-                    disabled={isTyping || !inputText.trim()}
-                    className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-90 shrink-0 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)] border border-cyan-400/30 transition-all hover:scale-105 hover:shadow-[0_0_25px_rgba(6,182,212,0.6)]"
-                    size="icon"
-                  >
-                    <Send size={15} />
-                  </Button>
-                </form>
-              ) : mode === "form-submitting" ? (
-                /* Form submitting progress spinner */
-                <div className="flex items-center justify-center py-2.5 text-xs text-cyan-300 font-mono gap-2 animate-pulse">
-                  <div className="w-4 h-4 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" />
-                  <span>Transmitting parameters...</span>
-                </div>
-              ) : mode === "form-complete" ? (
-                /* Form complete options */
-                <div className="flex gap-2 w-full">
-                  <Button
-                    onClick={resetFormComplete}
-                    className="w-full rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-500/40 text-cyan-300 text-xs sm:text-sm font-semibold h-11 transition-all"
-                  >
-                    Back to Chat
-                  </Button>
-                </div>
-              ) : (
-                /* Guided Form inputs */
-                <form onSubmit={handleFormNext} className="space-y-2.5">
-                  <div className="flex gap-2 items-end">
-                    <div className="flex-1">
-                      {mode === "form-message" ? (
-                        <Textarea
-                          value={formInputVal}
-                          onChange={(e) => setFormInputVal(e.target.value)}
-                          placeholder="Describe your project in detail (min 100 characters)..."
-                          required
-                          rows={2}
-                          className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl text-xs sm:text-[13px] placeholder:text-slate-500 resize-none min-h-[60px] p-3 shadow-inner transition-all"
-                        />
+              {/* Input Area */}
+              <div className="p-4 bg-slate-950/60 backdrop-blur-xl border-t border-white/5 shrink-0 relative z-20">
+                {mode === "chat" ? (
+                  <form onSubmit={handleChatSubmit} className="flex gap-2 items-center">
+                    {/* Speech Recognition mic button */}
+                    <button
+                      type="button"
+                      onClick={toggleSpeechInput}
+                      className={`h-11 w-11 rounded-2xl flex items-center justify-center shrink-0 border border-white/10 text-slate-400 hover:text-white transition-all relative ${
+                        isListening ? `${colors.micGlow} text-cyan-400 animate-pulse` : "bg-slate-900/80 hover:bg-slate-800"
+                      }`}
+                      title={isListening ? "Listening... click to stop" : "Start Voice input"}
+                    >
+                      {isListening ? (
+                        <>
+                          <MicOff size={16} />
+                          {/* Audio Wave visuals */}
+                          <span className="absolute -bottom-1 flex gap-0.5 justify-center w-full">
+                            <span className="w-0.5 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                            <span className="w-0.5 h-3.5 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                            <span className="w-0.5 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                          </span>
+                        </>
                       ) : (
-                        <Input
-                          value={formInputVal}
-                          onChange={(e) => setFormInputVal(e.target.value)}
-                          placeholder={
-                            mode === "form-name"
-                              ? "Enter name..."
-                              : mode === "form-email"
-                              ? "Enter email..."
-                              : "Enter phone or 'skip'..."
-                          }
-                          type={mode === "form-email" ? "email" : "text"}
-                          required
-                          className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-12 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all"
-                        />
+                        <Mic size={16} />
                       )}
-                    </div>
-                      <Button
+                    </button>
+
+                    <Input
+                      value={inputText}
+                      onChange={(e) => setInputText(e.target.value)}
+                      placeholder={isListening ? "Speak now..." : "Ask Smarty something..."}
+                      disabled={isTyping || isListening}
+                      className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-11 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all flex-1"
+                    />
+
+                    <Button
                       type="submit"
-                      className="h-12 w-12 rounded-2xl bg-gradient-to-br from-cyan-500 via-indigo-500 to-purple-600 hover:opacity-90 text-white shrink-0 shadow-[0_0_20px_rgba(6,182,212,0.4)] border border-cyan-400/30 transition-all hover:scale-105"
+                      disabled={isTyping || !inputText.trim()}
+                      className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors.accent} hover:opacity-90 shrink-0 text-white shadow-lg border border-white/10 transition-all hover:scale-105`}
                       size="icon"
                     >
                       <Send size={15} />
                     </Button>
+                  </form>
+                ) : mode === "form-submitting" ? (
+                  <div className="flex items-center justify-center py-2.5 text-xs text-cyan-300 font-mono gap-2 animate-pulse">
+                    <div className="w-4 h-4 border-2 border-cyan-500/20 border-t-cyan-400 rounded-full animate-spin" />
+                    <span>Transmitting parameters...</span>
                   </div>
-                  
-                  {mode === "form-message" && (
-                    <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 px-1 pt-1">
-                      <span className={formInputVal.trim().length < 100 ? "text-amber-400 animate-pulse font-semibold" : "text-emerald-400 font-bold"}>
-                        {formInputVal.trim().length < 100 
-                          ? `Needs ${100 - formInputVal.trim().length} more chars` 
-                          : "Requirements length: Excellent!"}
-                      </span>
-                      <span>{formInputVal.trim().length}/100</span>
-                    </div>
-                  )}
-
-                  {formError && (
-                    <div className="flex items-center gap-1.5 text-[10px] text-pink-500 font-mono animate-fade-in">
-                      <AlertCircle size={11} />
-                      <span>{formError}</span>
-                    </div>
-                  )}
-
-                  <div className="flex justify-between items-center select-none pt-1">
-                    <span className="text-[9px] font-mono text-slate-500">
-                      Step {mode === "form-name" ? 1 : mode === "form-email" ? 2 : mode === "form-phone" ? 3 : 4} of 4
-                    </span>
-                    <button
-                      type="button"
-                      onClick={cancelForm}
-                      className="text-[10px] font-semibold text-slate-400 hover:text-pink-400 hover:underline transition-colors font-mono"
+                ) : mode === "form-complete" ? (
+                  <div className="flex gap-2 w-full">
+                    <Button
+                      onClick={resetFormComplete}
+                      className="w-full rounded-2xl bg-slate-900/80 border border-cyan-500/20 hover:border-cyan-500/40 text-cyan-300 text-xs sm:text-sm font-semibold h-11 transition-all"
                     >
-                      Cancel Form
-                    </button>
+                      Back to Chat
+                    </Button>
                   </div>
-                </form>
-              )}
+                ) : (
+                  <form onSubmit={handleFormNext} className="space-y-2.5">
+                    <div className="flex gap-2 items-end">
+                      <div className="flex-1">
+                        {mode === "form-message" ? (
+                          <Textarea
+                            value={formInputVal}
+                            onChange={(e) => setFormInputVal(e.target.value)}
+                            placeholder="Describe your project requirements (min 100 characters)..."
+                            required
+                            rows={2}
+                            className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl text-xs sm:text-[13px] placeholder:text-slate-500 resize-none min-h-[60px] p-3 shadow-inner transition-all"
+                          />
+                        ) : (
+                          <Input
+                            value={formInputVal}
+                            onChange={(e) => setFormInputVal(e.target.value)}
+                            placeholder={
+                              mode === "form-name"
+                                ? "Enter full name..."
+                                : mode === "form-email"
+                                ? "Enter email address..."
+                                : "Enter phone number or 'skip'..."
+                            }
+                            type={mode === "form-email" ? "email" : "text"}
+                            required
+                            className="bg-slate-900/80 border border-white/10 focus:border-cyan-400/50 focus:bg-slate-800 focus:ring-1 focus:ring-cyan-400/50 text-white rounded-2xl h-11 px-4 text-xs sm:text-[13px] placeholder:text-slate-500 shadow-inner transition-all"
+                          />
+                        )}
+                      </div>
+                      <Button
+                        type="submit"
+                        className={`h-11 w-11 rounded-2xl bg-gradient-to-br ${colors.accent} hover:opacity-90 text-white shrink-0 border border-white/10 transition-all hover:scale-105`}
+                        size="icon"
+                      >
+                        <Send size={15} />
+                      </Button>
+                    </div>
+                    
+                    {mode === "form-message" && (
+                      <div className="flex justify-between items-center text-[10px] font-mono text-slate-400 px-1 pt-0.5">
+                        <span className={formInputVal.trim().length < 100 ? "text-amber-400 animate-pulse font-semibold" : "text-emerald-400 font-bold"}>
+                          {formInputVal.trim().length < 100 
+                            ? `Needs ${100 - formInputVal.trim().length} more chars` 
+                            : "Brief length: Perfect!"}
+                        </span>
+                        <span>{formInputVal.trim().length}/100</span>
+                      </div>
+                    )}
+
+                    {formError && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-pink-500 font-mono animate-fade-in">
+                        <AlertCircle size={11} />
+                        <span>{formError}</span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between items-center select-none pt-0.5">
+                      <span className="text-[9px] font-mono text-slate-500">
+                        Step {mode === "form-name" ? 1 : mode === "form-email" ? 2 : mode === "form-phone" ? 3 : 4} of 4
+                      </span>
+                      <button
+                        type="button"
+                        onClick={cancelForm}
+                        className="text-[10px] font-semibold text-slate-400 hover:text-pink-400 hover:underline transition-colors font-mono"
+                      >
+                        Cancel Form
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
+
+            {/* Right Panel: Advanced Command Center Dashboard (split screen layout) */}
+            {isMaximized && (
+              <div className="hidden md:flex md:w-1/2 flex-col h-full bg-slate-900/20 overflow-y-auto p-6 space-y-6 relative z-10 font-body select-none">
+                <div>
+                  <h3 className={`text-base font-heading font-black tracking-wider uppercase flex items-center gap-2 ${colors.textAccent}`}>
+                    <Sparkles size={16} /> Command Center
+                  </h3>
+                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                    Pre-compile detailed project requirements directly into Smarty's neural parser using our system configs.
+                  </p>
+                </div>
+
+                {/* 1. Project Brief Generator */}
+                <div className="p-5 rounded-2xl bg-slate-950/70 border border-white/5 space-y-4 shadow-xl">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest flex items-center gap-1.5">
+                    <Briefcase size={13} className={colors.textAccent} /> Requirement Compiler
+                  </h4>
+                  
+                  <div className="space-y-3">
+                    {/* Service selection */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono text-slate-500 uppercase">Service Categories</label>
+                      <select 
+                        value={briefService}
+                        onChange={(e) => setBriefService(e.target.value)}
+                        className="w-full h-9 bg-slate-900 border border-white/5 focus:border-cyan-500/30 text-xs rounded-xl px-2 text-slate-300 outline-none transition-colors"
+                      >
+                        <option>Website Design & Development</option>
+                        <option>Mobile App (iOS/Android)</option>
+                        <option>Custom CRM & automation</option>
+                        <option>Bulk SMS Platform</option>
+                        <option>SEO & Digital Marketing</option>
+                      </select>
+                    </div>
+
+                    {/* Grid for budget and timeline */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-slate-500 uppercase">Budget Bracket</label>
+                        <select 
+                          value={briefBudget}
+                          onChange={(e) => setBriefBudget(e.target.value)}
+                          className="w-full h-9 bg-slate-900 border border-white/5 text-xs rounded-xl px-2 text-slate-300 outline-none"
+                        >
+                          <option>&lt; $1,000</option>
+                          <option>$1,000 - $5,000</option>
+                          <option>$5,000 - $10,000</option>
+                          <option>&gt; $10,000</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-mono text-slate-500 uppercase">Timeline</label>
+                        <select 
+                          value={briefTimeline}
+                          onChange={(e) => setBriefTimeline(e.target.value)}
+                          className="w-full h-9 bg-slate-900 border border-white/5 text-xs rounded-xl px-2 text-slate-300 outline-none"
+                        >
+                          <option>1 Month</option>
+                          <option>2-3 Months</option>
+                          <option>Flexible</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Brief description */}
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono text-slate-500 uppercase">Brief Description</label>
+                      <Textarea 
+                        value={briefDetails}
+                        onChange={(e) => setBriefDetails(e.target.value)}
+                        placeholder="Type system parameters, features, pages, or databases needed..."
+                        rows={3}
+                        className="bg-slate-900 border border-white/5 focus:border-cyan-500/30 text-xs rounded-xl p-2.5 text-slate-300 outline-none resize-none min-h-[70px]"
+                      />
+                    </div>
+
+                    <Button
+                      onClick={handleGenerateBrief}
+                      className={`w-full h-9 rounded-xl bg-gradient-to-r ${colors.accent} text-xs font-bold shadow-md hover:opacity-95 transition-all text-white border border-white/10`}
+                    >
+                      Compile & Add to Input
+                    </Button>
+                  </div>
+                </div>
+
+                {/* 2. OES System Capabilities Showcase */}
+                <div className="space-y-3.5">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Capabilities Index</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div 
+                      onClick={() => setInputText("What is the average timeline for a website redesign project?")}
+                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                    >
+                      <div className="font-semibold text-slate-300 text-xs">Website UI/UX</div>
+                      <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">Average project timelines, process flow, and prototypes.</div>
+                    </div>
+                    <div 
+                      onClick={() => setInputText("Tell me more about your Custom Software Automation & CRMs.")}
+                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                    >
+                      <div className="font-semibold text-slate-300 text-xs">Custom CRM</div>
+                      <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">Workflow automations, internal portals, database integrations.</div>
+                    </div>
+                    <div 
+                      onClick={() => setInputText("What bulk SMS APIs and delivery rates do you provide?")}
+                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                    >
+                      <div className="font-semibold text-slate-300 text-xs">Bulk SMS APIs</div>
+                      <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">High-throughput outreach with 99.8% server uptime.</div>
+                    </div>
+                    <div 
+                      onClick={() => setInputText("How does OES secure rankings on page-1 of Google search?")}
+                      className="p-3 rounded-xl bg-slate-950/40 border border-white/5 hover:border-cyan-500/30 transition-all cursor-pointer text-left"
+                    >
+                      <div className="font-semibold text-slate-300 text-xs">SEO Solutions</div>
+                      <div className="text-[9px] text-slate-500 mt-1 leading-relaxed">Traffic pipelines, keywords audit, and search visibility.</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. System FAQs */}
+                <div className="space-y-3">
+                  <h4 className="text-xs font-bold text-slate-300 uppercase tracking-widest">Quick FAQs</h4>
+                  <div className="space-y-2 text-xs">
+                    <div 
+                      onClick={() => setInputText("Can I capture leads directly in my internal database with the chatbot?")}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/20 border border-white/5 hover:bg-slate-900/40 cursor-pointer text-slate-300 transition-colors text-left"
+                    >
+                      <span className="truncate">Can chatbot capture leads in custom CRM?</span>
+                      <ChevronRight size={13} className="text-slate-500 shrink-0 ml-2" />
+                    </div>
+                    <div 
+                      onClick={() => setInputText("Do you offer post-launch maintenance & code support?")}
+                      className="flex items-center justify-between p-2.5 rounded-xl bg-slate-950/20 border border-white/5 hover:bg-slate-900/40 cursor-pointer text-slate-300 transition-colors text-left"
+                    >
+                      <span className="truncate">Do you provide maintenance and updates?</span>
+                      <ChevronRight size={13} className="text-slate-500 shrink-0 ml-2" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
