@@ -15,7 +15,7 @@ import { motion, useScroll, useTransform, AnimatePresence, useMotionValue, useSp
 // ─── Floating Particles Component ───
 const FloatingParticles = memo(() => {
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
-  const particles = Array.from({ length: isMobile ? 12 : 30 }, (_, i) => ({
+  const particles = Array.from({ length: isMobile ? 6 : 20 }, (_, i) => ({
     id: i,
     size: Math.random() * 4 + 1,
     x: Math.random() * 100,
@@ -240,30 +240,32 @@ const HeroSection = () => {
 
   // 3D Card Stack visual calculator
   const getCardStyle = (cardIndex: number) => {
-    let frontIndex = 0;
-    if (currentSlide === 3) frontIndex = 1;
-    else if (currentSlide === 4) frontIndex = 2;
+    const frontIndex = currentSlide % 3;
 
     const isActive = frontIndex === cardIndex;
     let zIndex = 10, scale = 0.85, rotate = 0, x = 0, y = 0;
+
+    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+    const xMult = isMobile ? 0.6 : 1;
+    const yMult = isMobile ? 0.6 : 1;
 
     if (isActive) {
       zIndex = 30; scale = 1.04; rotate = 0; x = 0; y = 0;
     } else if (cardIndex === 0) {
       zIndex = frontIndex === 1 ? 20 : 10;
       scale = frontIndex === 1 ? 0.92 : 0.85;
-      rotate = -8; x = isStackHovered ? -120 : -50; y = isStackHovered ? -40 : -15;
+      rotate = -8; x = (isStackHovered ? -120 : -50) * xMult; y = (isStackHovered ? -40 : -15) * yMult;
     } else if (cardIndex === 1) {
       zIndex = frontIndex === 0 ? 20 : 10;
       scale = frontIndex === 0 ? 0.92 : 0.85;
-      rotate = 8; x = isStackHovered ? 120 : 50; y = isStackHovered ? 50 : 20;
+      rotate = 8; x = (isStackHovered ? 120 : 50) * xMult; y = (isStackHovered ? 50 : 20) * yMult;
     } else {
       zIndex = frontIndex === 0 ? 10 : 20;
       scale = frontIndex === 0 ? 0.85 : 0.92;
-      rotate = -12; x = isStackHovered ? -60 : -25; y = isStackHovered ? 100 : 40;
+      rotate = -12; x = (isStackHovered ? -60 : -25) * xMult; y = (isStackHovered ? 100 : 40) * yMult;
     }
 
-    return { zIndex, scale, x, y, rotate, opacity: isActive ? 1 : 0.6, filter: isActive ? "blur(0px)" : "blur(1.5px)" };
+    return { zIndex, scale, x, y, rotate, opacity: isActive ? 1 : 0.8 };
   };
 
   const cardData = [
@@ -484,22 +486,22 @@ const HeroSection = () => {
             <div
               onMouseEnter={() => setIsStackHovered(true)}
               onMouseLeave={() => setIsStackHovered(false)}
-              className="relative w-96 h-[420px] md:w-[420px] md:h-[480px] flex items-center justify-center select-none"
+              className="relative w-full max-w-[320px] h-[360px] md:max-w-none md:w-[420px] md:h-[480px] flex items-center justify-center select-none mt-8 md:mt-0"
             >
               {/* Orbit Ring 1 */}
-              <div className="hero-orbit-ring w-[340px] h-[340px] md:w-[400px] md:h-[400px]" />
+              <div className="hero-orbit-ring w-[280px] h-[280px] md:w-[400px] md:h-[400px]" />
               {/* Orbit Ring 2 */}
-              <div className="hero-orbit-ring-2 w-[440px] h-[440px] md:w-[500px] md:h-[500px]" />
+              <div className="hero-orbit-ring-2 w-[340px] h-[340px] md:w-[500px] md:h-[500px]" />
 
               {/* Pulse Rings behind deck */}
               <motion.div
-                className="absolute top-1/2 left-1/2 w-[200px] h-[200px] rounded-full border border-primary/20"
+                className="absolute top-1/2 left-1/2 w-[150px] h-[150px] md:w-[200px] md:h-[200px] rounded-full border border-primary/20"
                 animate={{ scale: [0.8, 2.5], opacity: [0.4, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeOut" }}
                 style={{ x: '-50%', y: '-50%' }}
               />
               <motion.div
-                className="absolute top-1/2 left-1/2 w-[200px] h-[200px] rounded-full border border-accent/15"
+                className="absolute top-1/2 left-1/2 w-[150px] h-[150px] md:w-[200px] md:h-[200px] rounded-full border border-accent/15"
                 animate={{ scale: [0.8, 2.5], opacity: [0.3, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: "easeOut", delay: 1 }}
                 style={{ x: '-50%', y: '-50%' }}
@@ -511,7 +513,7 @@ const HeroSection = () => {
                   key={idx}
                   animate={getCardStyle(idx)}
                   transition={{ type: "spring", stiffness: 100, damping: 16 }}
-                  className="absolute w-64 h-80 md:w-[280px] md:h-[370px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
+                  className="absolute w-[220px] h-[300px] md:w-[280px] md:h-[370px] rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
                 >
                   <div className="relative w-full h-full overflow-hidden bg-slate-900">
                     <img src={card.img} alt={card.label} className="w-full h-full object-cover" />
