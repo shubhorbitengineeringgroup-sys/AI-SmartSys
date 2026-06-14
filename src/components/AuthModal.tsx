@@ -18,9 +18,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [name, setName] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const { login } = useAuth();
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const isLogin = activeTab === "login";
 
@@ -29,11 +30,49 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
             return;
         }
 
-        // Simulate auth
-        login(email, name);
-        toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
-        onSuccess?.();
-        onClose();
+        setIsLoading(true);
+        const { supabase } = await import("@/integrations/supabase/client");
+
+        try {
+            if (isLogin) {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+
+                if (error) throw error;
+
+                toast.success("Welcome back!");
+                onSuccess?.();
+                onClose();
+            } else {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            name,
+                        },
+                    },
+                });
+
+                if (error) throw error;
+
+                if (data.session) {
+                    toast.success("Account created and logged in!");
+                    onSuccess?.();
+                    onClose();
+                } else {
+                    toast.success("Registration successful! Please check your email to confirm registration.");
+                    onClose();
+                }
+            }
+        } catch (error: any) {
+            console.error("Auth error:", error);
+            toast.error(error.message || "Authentication failed. Please try again.");
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleGoogleAuth = async () => {
@@ -148,8 +187,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onSuccess }) => 
                                     className="bg-muted/30 border-border/50 h-12 rounded-2xl"
                                     required
                                 />
-                                <Button type="submit" className="w-full h-12 text-base font-semibold bg-gradient-button hover:opacity-90 rounded-2xl shadow-lg shadow-primary/20 transition-all duration-300">
-                                    {activeTab === "login" ? "Sign In" : "Create Account"}
+                                <Button type="submit" disabled={isLoading} className="w-full h-12 text-base font-semibold bg-gradient-button hover:opacity-90 rounded-2xl shadow-lg shadow-primary/20 transition-all duration-300">
+                                    {isLoading ? (
+                                        <span className="flex items-center gap-2">
+                                            <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                                            Processing...
+                                        </span>
+                                    ) : (
+                                        activeTab === "login" ? "Sign In" : "Create Account"
+                                    )}
                                 </Button>
                             </form>
                         </div>

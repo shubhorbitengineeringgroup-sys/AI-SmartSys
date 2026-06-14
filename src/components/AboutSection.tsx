@@ -2,6 +2,11 @@ import { CheckCircle2, Target, Eye, Cpu, Cloud, Code, Sparkles, Activity, Layers
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+import whyChooseTeamImg from "@/assets/images/why_choose_team.png";
+import whyChooseTechImg from "@/assets/images/why_choose_tech.png";
+import whyChooseSecurityImg from "@/assets/images/why_choose_security.png";
+import whyChooseCustomerImg from "@/assets/images/why_choose_customer.png";
+
 const Counter = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
   const ref = useRef<HTMLSpanElement>(null);
@@ -380,28 +385,125 @@ const AboutSection = () => {
       </div>
 
       {/* Why Choose Us */}
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto">
-          <h3 className="text-3xl font-bold mb-12 text-center text-foreground">Why Choose Us</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+      <div className="container mx-auto px-4 mt-8 pb-12">
+        <div className="max-w-5xl mx-auto">
+          <h3 className="text-3xl font-bold mb-12 text-center text-foreground uppercase tracking-wider text-gradient-primary">
+            Why Choose Us
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ perspective: "1200px" }}>
             {[
-              "Experienced & Specialized Team",
-              "Modern & Scalable Technology",
-              "Reliable & Secure Solutions",
-              "Customer Focused Approach"
-            ].map((item, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5 }}
-                className="flex items-center gap-4 p-5 rounded-2xl bg-card border border-border/50 backdrop-blur-sm hover:border-primary/20 hover:shadow-lg hover:-translate-y-1 transition-all duration-300"
-              >
-                <CheckCircle2 className="text-primary shrink-0 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" size={24} />
-                <span className="text-lg font-medium text-foreground">{item}</span>
-              </motion.div>
-            ))}
+              {
+                title: "Experienced & Specialized Team",
+                desc: "Our senior engineers specialize in custom AI frameworks, responsive fullstack architectures, and creative UI/UX designs.",
+                image: whyChooseTeamImg,
+                glow: "shadow-[0_0_20px_rgba(6,182,212,0.15)] border-cyan-500/25",
+                color: "text-cyan-400",
+                hoverAnim: { scale: 1.03, y: -8, rotateY: 6 }
+              },
+              {
+                title: "Modern & Scalable Technology",
+                desc: "We deploy future-ready technologies like React, Next.js, Node, and state-of-the-art LLMs built to scale with your volume.",
+                image: whyChooseTechImg,
+                glow: "shadow-[0_0_20px_rgba(168,85,247,0.15)] border-purple-500/25",
+                color: "text-purple-400",
+                hoverAnim: { scale: 1.03, y: -8, rotateX: -6 }
+              },
+              {
+                title: "Reliable & Secure Solutions",
+                desc: "Security is foundational. We integrate enterprise-grade encryption, secure db nodes, and guarantee high availability.",
+                image: whyChooseSecurityImg,
+                glow: "shadow-[0_0_20px_rgba(16,185,129,0.15)] border-emerald-500/25",
+                color: "text-emerald-400",
+                hoverAnim: { scale: 1.03, y: -8, rotate: 1.5 }
+              },
+              {
+                title: "Customer Focused Approach",
+                desc: "We align directly with your growth vision through weekly iterations, rapid agile updates, and transparent sync cycles.",
+                image: whyChooseCustomerImg,
+                glow: "shadow-[0_0_20px_rgba(245,158,11,0.15)] border-amber-500/25",
+                color: "text-amber-400",
+                hoverAnim: { 
+                  y: -10, 
+                  scale: 1.03,
+                  transition: { y: { repeat: Infinity, repeatType: "mirror", duration: 1.6, ease: "easeInOut" } } 
+                }
+              }
+            ].map((item, index) => {
+              // Different spring entrance physics for "alag alag animations"
+              const getEntranceProps = (idx: number) => {
+                switch(idx) {
+                  case 0:
+                    return {
+                      initial: { opacity: 0, y: 45 },
+                      whileInView: { opacity: 1, y: 0 },
+                      transition: { type: "spring", stiffness: 110, damping: 12, delay: 0.05 }
+                    };
+                  case 1:
+                    return {
+                      initial: { opacity: 0, x: 45 },
+                      whileInView: { opacity: 1, x: 0 },
+                      transition: { type: "spring", stiffness: 100, damping: 14, delay: 0.15 }
+                    };
+                  case 2:
+                    return {
+                      initial: { opacity: 0, scale: 0.92, rotate: -2 },
+                      whileInView: { opacity: 1, scale: 1, rotate: 0 },
+                      transition: { type: "spring", stiffness: 115, damping: 10, delay: 0.25 }
+                    };
+                  case 3:
+                    return {
+                      initial: { opacity: 0, y: -45 },
+                      whileInView: { opacity: 1, y: 0 },
+                      transition: { type: "spring", stiffness: 95, damping: 15, delay: 0.35 }
+                    };
+                  default:
+                    return {};
+                }
+              };
+
+              const entranceProps = getEntranceProps(index);
+
+              return (
+                <motion.div
+                  key={index}
+                  {...entranceProps}
+                  viewport={{ once: true }}
+                  whileHover={item.hoverAnim}
+                  className={`flex flex-col sm:flex-row gap-5 p-5 rounded-[2rem] bg-card/60 border backdrop-blur-md transition-all duration-500 shadow-xl group cursor-pointer ${item.glow}`}
+                >
+                  {/* Glassmorphic Illustration frame */}
+                  <div className="relative w-full sm:w-[130px] aspect-video sm:aspect-square rounded-2xl overflow-hidden bg-slate-950/60 border border-white/5 shrink-0 flex items-center justify-center">
+                    {/* Pulsing light source */}
+                    <div 
+                      className="absolute w-20 h-20 rounded-full blur-[25px] opacity-20 group-hover:opacity-40 transition-opacity duration-500"
+                      style={{
+                        background: `radial-gradient(circle, ${item.glow.includes("6,182,212") ? "#06b6d4" : item.glow.includes("168,85,247") ? "#a855f7" : item.glow.includes("16,185,129") ? "#10b981" : "#f59e0b"} 0%, transparent 70%)`
+                      }}
+                    />
+                    <img 
+                      src={item.image} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                    {/* Scanner scanline filters overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[size:100%_4px] pointer-events-none opacity-20" />
+                  </div>
+
+                  {/* Content details */}
+                  <div className="flex flex-col justify-center text-left">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className={`${item.color} shrink-0 drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]`} size={20} />
+                      <h4 className="text-base font-bold text-foreground font-heading leading-snug group-hover:text-primary transition-colors duration-300">
+                        {item.title}
+                      </h4>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                      {item.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>

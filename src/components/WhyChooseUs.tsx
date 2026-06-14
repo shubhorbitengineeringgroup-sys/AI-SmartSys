@@ -8,6 +8,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import AuthModal from "./AuthModal";
 
+import whyChooseTeamImg from "@/assets/images/why_choose_team.png";
+import whyChooseTechImg from "@/assets/images/why_choose_tech.png";
+import whyChooseSecurityImg from "@/assets/images/why_choose_security.png";
+import whyChooseCustomerImg from "@/assets/images/why_choose_customer.png";
+
 const pillars = [
   {
     id: 0,
@@ -22,7 +27,8 @@ const pillars = [
     glowColor: "rgba(6, 182, 212, 0.25)",
     themeGlow: "#06b6d4",
     textColor: "text-cyan-400 dark:text-cyan-400",
-    borderColor: "border-cyan-500/20 group-hover:border-cyan-500/60"
+    borderColor: "border-cyan-500/20 group-hover:border-cyan-500/60",
+    image: whyChooseTeamImg
   },
   {
     id: 1,
@@ -37,7 +43,8 @@ const pillars = [
     glowColor: "rgba(168, 85, 247, 0.25)",
     themeGlow: "#a855f7",
     textColor: "text-purple-400 dark:text-purple-400",
-    borderColor: "border-purple-500/20 group-hover:border-purple-500/60"
+    borderColor: "border-purple-500/20 group-hover:border-purple-500/60",
+    image: whyChooseTechImg
   },
   {
     id: 2,
@@ -52,7 +59,8 @@ const pillars = [
     glowColor: "rgba(16, 185, 129, 0.25)",
     themeGlow: "#10b981",
     textColor: "text-emerald-400 dark:text-emerald-400",
-    borderColor: "border-emerald-500/20 group-hover:border-emerald-500/60"
+    borderColor: "border-emerald-500/20 group-hover:border-emerald-500/60",
+    image: whyChooseSecurityImg
   },
   {
     id: 3,
@@ -67,7 +75,8 @@ const pillars = [
     glowColor: "rgba(245, 158, 11, 0.25)",
     themeGlow: "#f59e0b",
     textColor: "text-amber-400 dark:text-amber-400",
-    borderColor: "border-amber-500/20 group-hover:border-amber-500/60"
+    borderColor: "border-amber-500/20 group-hover:border-amber-500/60",
+    image: whyChooseCustomerImg
   }
 ];
 
@@ -376,32 +385,57 @@ const WhyChooseUs = () => {
             {pillars.map((p, index) => {
               const Icon = p.icon;
               const isHovered = hoveredPillar === index;
+
+              // Define different entrance and hover animations for each card
+              const getAnimationProps = (idx: number) => {
+                switch(idx) {
+                  case 0: // Team - 3D Tilt & Spring Vertical bounce entrance
+                    return {
+                      initial: { opacity: 0, y: 60, scale: 0.95 },
+                      animate: { opacity: 1, y: 0, scale: 1 },
+                      whileHover: { rotateY: 8, rotateX: -8, y: -12, scale: 1.02 },
+                      transition: { type: "spring", stiffness: 120, damping: 12, delay: 0.1 }
+                    };
+                  case 1: // Tech - Horizontal slide & Zoom hover
+                    return {
+                      initial: { opacity: 0, x: 80 },
+                      animate: { opacity: 1, x: 0 },
+                      whileHover: { y: -12, scale: 1.04 },
+                      transition: { type: "spring", stiffness: 100, damping: 15, delay: 0.25 }
+                    };
+                  case 2: // Security - Scale Wobble & Radar pulse hover
+                    return {
+                      initial: { opacity: 0, scale: 0.8, rotate: -4 },
+                      animate: { opacity: 1, scale: 1, rotate: 0 },
+                      whileHover: { y: -12, scale: 1.02 },
+                      transition: { type: "spring", stiffness: 110, damping: 10, delay: 0.4 }
+                    };
+                  case 3: // Customer - Diagonal sweep & float hover loop
+                    return {
+                      initial: { opacity: 0, x: 50, y: 50 },
+                      animate: { opacity: 1, x: 0, y: 0 },
+                      whileHover: { 
+                        y: -15,
+                        transition: {
+                          y: { repeat: Infinity, repeatType: "mirror", duration: 1.8, ease: "easeInOut" }
+                        }
+                      },
+                      transition: { type: "spring", stiffness: 90, damping: 14, delay: 0.55 }
+                    };
+                  default:
+                    return {};
+                }
+              };
+
+              const animProps = getAnimationProps(index);
+
               return (
                 <motion.div
                   key={p.title}
                   onMouseEnter={() => setHoveredPillar(index)}
                   onMouseLeave={() => setHoveredPillar(null)}
-                  // Loop ambient floating animation constantly
-                  animate={{
-                    y: isHovered ? -12 : [0, index % 2 === 0 ? -6 : 6, 0],
-                    rotate: isHovered 
-                      ? (index % 2 === 0 ? 1 : -1) 
-                      : [0, index % 2 === 0 ? 0.3 : -0.3, 0],
-                  }}
-                  whileHover={{ 
-                    scale: 1.03,
-                    z: 20
-                  }}
-                  transition={{ 
-                    y: isHovered 
-                      ? { type: "spring", stiffness: 150, damping: 15 } 
-                      : { duration: 5 + index, repeat: Infinity, ease: "easeInOut" },
-                    rotate: isHovered 
-                      ? { type: "spring", stiffness: 150, damping: 15 }
-                      : { duration: 6 + index, repeat: Infinity, ease: "easeInOut" },
-                    scale: { type: "spring", stiffness: 150, damping: 15 }
-                  }}
-                  className={`relative p-8 bg-card/45 border transition-all duration-500 flex flex-col justify-between overflow-hidden group/card z-10 ${p.shape} ${p.borderColor}`}
+                  {...animProps}
+                  className={`relative p-6 bg-card/45 border transition-all duration-500 flex flex-col justify-between overflow-hidden group/card z-10 ${p.shape} ${p.borderColor}`}
                   style={{
                     boxShadow: isHovered ? `0 20px 45px -10px ${p.glowColor}` : "none",
                     transformStyle: "preserve-3d"
@@ -441,63 +475,83 @@ const WhyChooseUs = () => {
                     {p.tag}
                   </motion.div>
 
-                  <div>
+                  <div className="space-y-4">
+                    {/* Viewport for Graphic Illustration */}
+                    <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-slate-950/60 border border-white/5 flex items-center justify-center group/img shadow-md">
+                      {/* Radial glow inside image viewport */}
+                      <div 
+                        className="absolute w-[120px] h-[120px] rounded-full blur-[40px] opacity-25 group-hover/card:opacity-50 transition-opacity duration-500"
+                        style={{
+                          background: `radial-gradient(circle, ${p.glowColor.replace("0.25", "1")} 0%, transparent 70%)`
+                        }}
+                      />
+                      
+                      {/* Image */}
+                      <img 
+                        src={p.image} 
+                        alt={p.title} 
+                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-105"
+                      />
+                      
+                      {/* Scanline pattern over illustration */}
+                      <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_50%,rgba(0,0,0,0.2)_50%)] bg-[size:100%_4px] pointer-events-none opacity-20" />
+                      
+                      {/* Radar Scanning Ring for Security card */}
+                      {index === 2 && isHovered && (
+                        <motion.div 
+                          className="absolute w-24 h-24 border-2 border-emerald-500/30 rounded-full pointer-events-none"
+                          animate={{ scale: [1, 2.5], opacity: [0.8, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+                        />
+                      )}
+                    </div>
+
                     {/* Header: Icon with Spinning HUD reticle & Badge */}
-                    <div className="flex justify-between items-start mb-7">
-                      <div className="relative w-12 h-12 flex items-center justify-center shrink-0">
-                        
-                        {/* Ambient slow spinning rings - speed up significantly on hover */}
+                    <div className="flex justify-between items-center">
+                      <div className="relative w-10 h-10 flex items-center justify-center shrink-0">
+                        {/* Ambient slow spinning rings */}
                         <motion.div 
                           animate={{ rotate: 360 }}
                           transition={isHovered 
-                            ? { duration: 6, repeat: Infinity, ease: "linear" }
-                            : { duration: 25, repeat: Infinity, ease: "linear" }
+                            ? { duration: 5, repeat: Infinity, ease: "linear" }
+                            : { duration: 20, repeat: Infinity, ease: "linear" }
                           }
-                          className="absolute inset-[-4px] border border-dashed rounded-xl opacity-25 group-hover/card:opacity-75 transition-all duration-500" 
+                          className="absolute inset-[-3px] border border-dashed rounded-lg opacity-25 group-hover/card:opacity-75 transition-all duration-500" 
                           style={{ borderColor: p.themeGlow }}
                         />
-                        <motion.div 
-                          animate={{ rotate: -360 }}
-                          transition={isHovered 
-                            ? { duration: 8, repeat: Infinity, ease: "linear" }
-                            : { duration: 35, repeat: Infinity, ease: "linear" }
-                          }
-                          className="absolute inset-[-8px] border-2 border-dotted rounded-full opacity-15 group-hover/card:opacity-40 transition-all duration-500" 
-                          style={{ borderColor: p.themeGlow }}
-                        />
-
-                        {/* Solid Icon Box */}
-                        <div className={`w-full h-full rounded-2xl flex items-center justify-center border transition-all duration-500 ${
+                        <div className={`w-full h-full rounded-xl flex items-center justify-center border transition-all duration-500 ${
                           isHovered
                             ? `bg-gradient-to-br ${p.color} text-white border-transparent shadow-lg scale-105`
                             : "bg-background/40 border-border/40 text-muted-foreground"
                         }`}>
-                          <Icon size={20} className={isHovered ? "animate-pulse" : ""} />
+                          <Icon size={16} className={isHovered ? "animate-pulse" : ""} />
                         </div>
                       </div>
 
                       {/* Pill Badge */}
-                      <span className="text-[9px] font-extrabold font-mono uppercase tracking-wider text-muted-foreground/60 border border-border/40 px-2.5 py-0.5 rounded-full select-none mt-1 animate-pulse" style={{ animationDuration: "3s" }}>
+                      <span className="text-[8px] font-bold font-mono uppercase tracking-wider text-muted-foreground/60 border border-border/40 px-2.5 py-0.5 rounded-full select-none mt-1 animate-pulse" style={{ animationDuration: "3s" }}>
                         {p.badge}
                       </span>
                     </div>
 
-                    {/* Content text - header glows on hover */}
-                    <h4 className="font-heading font-black text-base text-foreground mb-1 transition-all duration-300" style={{ color: isHovered ? p.themeGlow : "inherit", textShadow: isHovered ? `0 0 12px ${p.glowColor.replace("0.25", "0.6")}` : "none" }}>
-                      {p.title}
-                    </h4>
-                    <p className={`text-[10px] font-mono uppercase tracking-widest font-extrabold mb-4 transition-colors duration-300 ${
-                      isHovered ? p.textColor : "text-muted-foreground/70"
-                    }`}>
-                      {p.subtitle}
-                    </p>
-                    <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                      {p.desc}
-                    </p>
+                    {/* Content text */}
+                    <div>
+                      <h4 className="font-heading font-black text-sm text-foreground mb-1 transition-all duration-300" style={{ color: isHovered ? p.themeGlow : "inherit", textShadow: isHovered ? `0 0 12px ${p.glowColor.replace("0.25", "0.6")}` : "none" }}>
+                        {p.title}
+                      </h4>
+                      <p className={`text-[9px] font-mono uppercase tracking-widest font-extrabold mb-3 transition-colors duration-300 ${
+                        isHovered ? p.textColor : "text-muted-foreground/70"
+                      }`}>
+                        {p.subtitle}
+                      </p>
+                      <p className="text-[11px] text-muted-foreground leading-relaxed font-medium">
+                        {p.desc}
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Aesthetic Indicator: bottom status loading bar */}
-                  <div className="mt-6 w-full h-[2.5px] bg-border/30 relative overflow-hidden rounded-full p-[0.5px]">
+                  {/* Aesthetic bottom loading bar */}
+                  <div className="mt-5 w-full h-[2.5px] bg-border/30 relative overflow-hidden rounded-full p-[0.5px]">
                     <motion.div
                       className={`absolute left-0 top-0 bottom-0 bg-gradient-to-r ${p.color}`}
                       initial={{ width: "20%" }}

@@ -4,20 +4,20 @@ import { Button } from "@/components/ui/button";
 import aiLogo from "@/assets/ai-smartsys-logo.png";
 import aiLogoDark from "@/assets/ai-smartsys-logo-dark.png";
 import { useAuth } from "@/context/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import AuthModal from "./AuthModal";
 import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 
 const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Services", href: "#services" },
-  { label: "Products", href: "#products" },
-  { label: "Process", href: "#process" },
-  { label: "Portfolio", href: "#portfolio" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/#home" },
+  { label: "About", href: "/#about" },
+  { label: "Services", href: "/#services" },
+  { label: "Products", href: "/#products" },
+  { label: "Process", href: "/#process" },
+  { label: "Portfolio", href: "/#portfolio" },
+  { label: "FAQ", href: "/#faq" },
+  { label: "Contact", href: "/#contact" },
 ];
 
 const Navbar = () => {
@@ -26,6 +26,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { theme, setTheme } = useTheme();
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
@@ -55,6 +56,81 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Effect to handle scrolling to hash targets when pathname/hash changes
+  useEffect(() => {
+    if (location.hash) {
+      const targetId = location.hash.substring(1);
+      let attempts = 0;
+      const maxAttempts = 60; // 60 * 100ms = 6 seconds max polling
+
+      const intervalId = setInterval(() => {
+        const element = document.getElementById(targetId);
+        if (element) {
+          clearInterval(intervalId);
+          const offset = 80;
+          const bodyRect = document.body.getBoundingClientRect().top;
+          const elementRect = element.getBoundingClientRect().top;
+          const elementPosition = elementRect - bodyRect;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+          setActiveSection(location.hash);
+        } else {
+          attempts++;
+          if (attempts >= maxAttempts) {
+            clearInterval(intervalId);
+          }
+        }
+      }, 100);
+
+      return () => clearInterval(intervalId);
+    }
+  }, [location.pathname, location.hash]);
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    const hashIndex = href.indexOf("#");
+    const isHash = hashIndex !== -1;
+    if (isHash) {
+      const targetId = href.substring(hashIndex + 1);
+      const isHomepage = location.pathname === "/" || location.pathname === "/index.html" || document.getElementById("home") !== null;
+
+      if (isHomepage) {
+        e.preventDefault();
+        const element = document.getElementById(targetId);
+        if (element) {
+          const offset = 80;
+          const bodyRect = document.body.getBoundingClientRect().top;
+          const elementRect = element.getBoundingClientRect().top;
+          const elementPosition = elementRect - bodyRect;
+          const offsetPosition = elementPosition - offset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth"
+          });
+          
+          window.history.pushState(null, "", href);
+          setActiveSection("#" + targetId);
+        }
+      } else {
+        if (location.pathname === "/about" && targetId === "about") {
+          e.preventDefault();
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+        } else {
+          e.preventDefault();
+          navigate(href);
+        }
+      }
+      setIsOpen(false);
+    }
+  };
+
   const handleAuthAction = () => {
     if (isAuthenticated) {
       navigate("/dashboard");
@@ -64,8 +140,11 @@ const Navbar = () => {
   };
 
   const checkActive = (href: string) => {
-    if (activeSection === href) return true;
-    if (href.includes("#") && activeSection === "#" + href.split("#")[1]) return true;
+    const hash = href.includes("#") ? "#" + href.split("#")[1] : href;
+    if (location.pathname === "/about" && hash === "#about") return true;
+    if (location.pathname === "/" || location.pathname === "/index.html") {
+      if (activeSection === hash) return true;
+    }
     return false;
   };
 
@@ -79,7 +158,7 @@ const Navbar = () => {
         layout
         className={`w-full flex flex-col justify-center transition-all duration-500 border bg-card/65 backdrop-blur-2xl ${
           scrolled 
-            ? "max-w-4xl rounded-2xl sm:rounded-full px-5 py-2.5 border-primary/30 shadow-[0_12px_40px_-12px_rgba(6,182,212,0.25)]" 
+            ? "max-w-6xl rounded-2xl sm:rounded-full px-5 py-2.5 border-primary/30 shadow-[0_12px_40px_-12px_rgba(6,182,212,0.25)]" 
             : "max-w-7xl rounded-3xl sm:rounded-[2.5rem] px-6 py-4 border-border/50 shadow-2xl"
         }`}
       >
@@ -99,7 +178,7 @@ const Navbar = () => {
 
           {/* Desktop Navigation links - Shared Layout Transition */}
           <div 
-            className="hidden md:flex items-center gap-1.5 p-1.5 rounded-full bg-muted/40 backdrop-blur-sm border border-border/50 relative"
+            className="hidden lg:flex items-center gap-1.5 p-1.5 rounded-full bg-muted/40 backdrop-blur-sm border border-border/50 relative"
             onMouseLeave={() => setHoveredHref(null)}
           >
             {navLinks.map((link) => {
@@ -107,11 +186,12 @@ const Navbar = () => {
               const isHovered = hoveredHref === link.href;
 
               return (
-                <a
+                <Link
                   key={link.href}
-                  href={link.href}
+                  to={link.href}
+                  onClick={(e: any) => handleLinkClick(e, link.href)}
                   onMouseEnter={() => setHoveredHref(link.href)}
-                  className={`relative px-4 py-2.5 text-xs lg:text-sm font-bold uppercase tracking-wider transition-colors duration-300 select-none z-10 ${
+                  className={`relative px-2.5 xl:px-4 py-2 text-xs xl:text-sm font-bold uppercase tracking-wider transition-colors duration-300 select-none z-10 ${
                     isActive 
                       ? "text-primary-foreground font-black" 
                       : "text-muted-foreground hover:text-foreground"
@@ -136,13 +216,13 @@ const Navbar = () => {
                   )}
                   
                   {link.label}
-                </a>
+                </Link>
               );
             })}
           </div>
 
           {/* Desktop Action Buttons */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3">
             <Button 
               size="icon" 
               variant="ghost" 
@@ -156,7 +236,7 @@ const Navbar = () => {
                 <Button 
                   size="sm" 
                   onClick={() => navigate("/dashboard")} 
-                  className="rounded-full px-6 bg-muted/50 text-foreground hover:bg-muted border border-border/40 transition-all duration-300"
+                  className="rounded-full px-4 xl:px-6 bg-muted/50 text-foreground hover:bg-muted border border-border/40 transition-all duration-300"
                 >
                   <Layout size={16} className="mr-2" /> Dashboard
                 </Button>
@@ -173,7 +253,7 @@ const Navbar = () => {
               <Button 
                 size="sm" 
                 onClick={handleAuthAction} 
-                className="rounded-full px-6 bg-gradient-nav-pill text-secondary-foreground shadow-md shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all duration-300"
+                className="rounded-full px-4 xl:px-6 bg-gradient-nav-pill text-secondary-foreground shadow-md shadow-primary/20 hover:shadow-primary/40 hover:scale-105 transition-all duration-300"
               >
                 Get Started
               </Button>
@@ -181,7 +261,7 @@ const Navbar = () => {
           </div>
 
           {/* Mobile toggle */}
-          <div className="flex justify-end items-center gap-2 md:hidden">
+          <div className="flex justify-end items-center gap-2 lg:hidden">
             <Button 
               size="icon" 
               variant="ghost" 
@@ -222,24 +302,28 @@ const Navbar = () => {
                 {navLinks.map((link) => {
                   const isActive = checkActive(link.href);
                   return (
-                    <motion.a
+                    <Link
                       key={link.href}
-                      href={link.href}
-                      onClick={() => setIsOpen(false)}
-                      variants={{
-                        open: { y: 0, opacity: 1, scale: 1 },
-                        closed: { y: -10, opacity: 0, scale: 0.95 }
-                      }}
-                      transition={{ type: "spring", stiffness: 350, damping: 24 }}
+                      to={link.href}
+                      onClick={(e: any) => handleLinkClick(e, link.href)}
                       className={`relative px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-between border ${
                         isActive
                           ? "bg-gradient-nav-pill text-primary-foreground border-transparent shadow-md shadow-primary/10"
                           : "text-muted-foreground border-transparent hover:text-foreground hover:bg-muted/30"
                       }`}
                     >
-                      <span>{link.label}</span>
-                      {isActive && <span className="w-1 h-1 rounded-full bg-primary-foreground animate-ping" />}
-                    </motion.a>
+                      <motion.div
+                        variants={{
+                          open: { y: 0, opacity: 1, scale: 1 },
+                          closed: { y: -10, opacity: 0, scale: 0.95 }
+                        }}
+                        transition={{ type: "spring", stiffness: 350, damping: 24 }}
+                        className="w-full flex items-center justify-between"
+                      >
+                        <span>{link.label}</span>
+                        {isActive && <span className="w-1 h-1 rounded-full bg-primary-foreground animate-ping" />}
+                      </motion.div>
+                    </Link>
                   );
                 })}
                 

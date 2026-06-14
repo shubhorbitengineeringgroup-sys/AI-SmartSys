@@ -11,6 +11,7 @@ import ResumeBuilder from "@/components/tools/ResumeBuilder";
 import ImageGenerator from "@/components/tools/ImageGenerator";
 import ChatbotBuilder from "@/components/tools/ChatbotBuilder";
 
+
 const Dashboard = () => {
     const { user, logout, isAuthenticated } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -82,7 +83,7 @@ const Dashboard = () => {
                         </div>
                     ) : (
                         <>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {userTools.map((tool) => (
                                     <div key={tool.id} className="premium-card p-8 group cursor-pointer hover:-translate-y-2 transition-all duration-300">
                                         <div className={`w-14 h-14 rounded-2xl bg-muted/50 flex items-center justify-center mb-6 border border-border/40 group-hover:bg-primary/10 transition-colors ${tool.color}`}>

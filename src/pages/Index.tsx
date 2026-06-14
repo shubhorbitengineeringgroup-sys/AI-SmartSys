@@ -4,6 +4,8 @@ import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 import NeuralCanvas from "@/components/NeuralCanvas";
+import { AIChatbot } from "@/components/AIChatbot";
+
 
 const AboutSection = lazy(() => import("@/components/AboutSection"));
 const ServicesSection = lazy(() => import("@/components/ServicesSection"));
@@ -81,6 +83,7 @@ const Index = () => {
       </Suspense>
       
       <Footer />
+      <AIChatbot />
     </div>
   );
 };
