@@ -994,7 +994,7 @@ export const AIChatbot = () => {
               {mode === "form-complete" && <CanvasConfetti />}
 
               {/* Messages dialogue stream */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar z-10 relative">
+              <div className={`flex-1 overflow-y-auto p-4 space-y-4 cute-scrollbar ${terminalTheme}-scroll z-10 relative`}>
                 {messages.map((m) => (
                   <div
                     key={m.id}
@@ -1205,7 +1205,7 @@ export const AIChatbot = () => {
 
             {/* Right Panel: Advanced Command Center Dashboard (split screen layout) */}
             {isMaximized && (
-              <div className={`hidden md:flex md:w-1/2 flex-col h-full ${isLight ? "bg-slate-50/50" : "bg-slate-900/20"} overflow-y-auto p-6 space-y-6 relative z-10 font-body select-none no-scrollbar`}>
+              <div className={`hidden md:flex md:w-1/2 flex-col h-full ${isLight ? "bg-slate-50/50" : "bg-slate-900/20"} overflow-y-auto p-6 space-y-6 relative z-10 font-body select-none cute-scrollbar ${terminalTheme}-scroll`}>
                 <div>
                   <h3 className={`text-base font-heading font-black tracking-wider uppercase flex items-center gap-2 ${colors.textAccent}`}>
                     <Sparkles size={16} /> Command Center

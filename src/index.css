@@ -685,4 +685,41 @@ html {
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Cute, thin scrollbar style */
+.cute-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+.cute-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cute-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(156, 163, 175, 0.25);
+  transition: background 0.3s ease;
+}
+
+/* Theme specifics */
+.cyber-blue-scroll::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.3) !important;
+}
+.cyber-blue-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.65) !important;
+}
+
+.matrix-scroll::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.35) !important;
+}
+.matrix-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.7) !important;
+}
+
+.holo-pink-scroll::-webkit-scrollbar-thumb {
+  background: rgba(236, 72, 153, 0.3) !important;
+}
+.holo-pink-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(236, 72, 153, 0.65) !important;
+}
+
+
 
