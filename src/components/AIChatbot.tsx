@@ -17,64 +17,72 @@ interface Message {
 
 type ChatMode = "chat" | "form-name" | "form-email" | "form-phone" | "form-message" | "form-submitting" | "form-complete";
 
-// Cute SVG Robot Face that reacts to bot state
 const RobotFace = ({ expression, size = 40 }: { expression: "idle" | "typing" | "happy" | "winking"; size?: number }) => {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className="drop-shadow-[0_0_8px_rgba(6,182,212,0.5)]">
-      {/* Robot Head Outer */}
-      <rect x="15" y="20" width="70" height="60" rx="20" fill="url(#bot-head-grad)" stroke="rgba(6,182,212,0.4)" strokeWidth="2" />
-      {/* Ears */}
-      <rect x="5" y="40" width="10" height="20" rx="3" fill="#6366f1" />
-      <rect x="85" y="40" width="10" height="20" rx="3" fill="#6366f1" />
-      {/* Antenna */}
-      <rect x="47" y="5" width="6" height="15" fill="#06b6d4" />
-      <circle cx="50" cy="5" r="8" fill="#ec4899" className="animate-pulse" />
-      
-      {/* Face Screen */}
-      <rect x="23" y="28" width="54" height="44" rx="12" fill="#0f172a" stroke="rgba(6,182,212,0.3)" />
-      
-      {/* Eyes */}
-      {expression === "idle" && (
-        <>
-          <circle cx="40" cy="45" r="6" fill="#06b6d4" />
-          <circle cx="60" cy="45" r="6" fill="#06b6d4" />
-        </>
-      )}
-      {expression === "typing" && (
-        <>
-          <ellipse cx="40" cy="45" rx="6" ry="2" fill="#eab308" className="animate-pulse" />
-          <ellipse cx="60" cy="45" rx="6" ry="2" fill="#eab308" className="animate-pulse" />
-        </>
-      )}
-      {expression === "happy" && (
-        <>
-          <path d="M34 48 C 34 40, 46 40, 46 48" stroke="#06b6d4" strokeWidth="4" strokeLinecap="round" />
-          <path d="M54 48 C 54 40, 66 40, 66 48" stroke="#06b6d4" strokeWidth="4" strokeLinecap="round" />
-        </>
-      )}
-      {expression === "winking" && (
-        <>
-          <path d="M34 45 L 46 45" stroke="#06b6d4" strokeWidth="4" strokeLinecap="round" />
-          <circle cx="60" cy="45" r="6" fill="#06b6d4" />
-        </>
-      )}
-
-      {/* Mouth */}
-      {expression === "happy" || expression === "winking" ? (
-        <path d="M42 62 Q 50 68 58 62" stroke="#ec4899" strokeWidth="3" strokeLinecap="round" fill="none" />
-      ) : expression === "typing" ? (
-        <line x1="44" y1="62" x2="56" y2="62" stroke="#eab308" strokeWidth="3" strokeLinecap="round" />
-      ) : (
-        <line x1="42" y1="62" x2="58" y2="62" stroke="#06b6d4" strokeWidth="3" strokeLinecap="round" />
-      )}
-
-      {/* Gradients */}
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className="drop-shadow-[0_0_15px_rgba(6,182,212,0.6)]">
       <defs>
-        <linearGradient id="bot-head-grad" x1="0" y1="0" x2="100" y2="100">
-          <stop offset="0%" stopColor="#1e293b" />
-          <stop offset="100%" stopColor="#4f46e5" />
+        {/* 3D Sphere Gradients */}
+        <radialGradient id="ai-core" cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#c084fc" />
+          <stop offset="50%" stopColor="#3b82f6" />
+          <stop offset="100%" stopColor="#0f172a" />
+        </radialGradient>
+        <radialGradient id="eye-glow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#67e8f9" />
+          <stop offset="100%" stopColor="transparent" />
+        </radialGradient>
+        <linearGradient id="metal-ring" x1="0" y1="0" x2="100" y2="100">
+          <stop offset="0%" stopColor="#e2e8f0" />
+          <stop offset="50%" stopColor="#64748b" />
+          <stop offset="100%" stopColor="#0f172a" />
         </linearGradient>
       </defs>
+
+      {/* Outer Metal Ring */}
+      <circle cx="50" cy="50" r="48" fill="url(#metal-ring)" />
+      
+      {/* Inner Glowing Core */}
+      <circle cx="50" cy="50" r="42" fill="url(#ai-core)" />
+
+      {/* Floating Holographic Elements */}
+      <path d="M 20 50 Q 50 20 80 50 Q 50 80 20 50" fill="none" stroke="rgba(103,232,249,0.4)" strokeWidth="2" className="animate-[spin_10s_linear_infinite]" style={{ transformOrigin: "50% 50%" }} />
+      <path d="M 30 50 Q 50 30 70 50 Q 50 70 30 50" fill="none" stroke="rgba(103,232,249,0.6)" strokeWidth="1" className="animate-[spin_8s_linear_infinite_reverse]" style={{ transformOrigin: "50% 50%" }} />
+
+      {/* Expression / Face */}
+      {expression === "idle" && (
+        <g>
+          <circle cx="35" cy="45" r="7" fill="#fff" />
+          <circle cx="65" cy="45" r="7" fill="#fff" />
+          <circle cx="35" cy="45" r="14" fill="url(#eye-glow)" />
+          <circle cx="65" cy="45" r="14" fill="url(#eye-glow)" />
+          <path d="M 40 65 Q 50 72 60 65" stroke="#67e8f9" strokeWidth="3" strokeLinecap="round" fill="none" />
+        </g>
+      )}
+      {expression === "typing" && (
+        <g>
+          <ellipse cx="35" cy="45" rx="8" ry="3" fill="#fde047" className="animate-pulse" />
+          <ellipse cx="65" cy="45" rx="8" ry="3" fill="#fde047" className="animate-pulse" />
+          <circle cx="50" cy="65" r="4" fill="#fde047" className="animate-pulse" />
+        </g>
+      )}
+      {expression === "happy" && (
+        <g>
+          <path d="M 28 48 Q 35 38 42 48" stroke="#fff" strokeWidth="4" strokeLinecap="round" fill="none" />
+          <path d="M 58 48 Q 65 38 72 48" stroke="#fff" strokeWidth="4" strokeLinecap="round" fill="none" />
+          <path d="M 35 60 Q 50 75 65 60" stroke="#f472b6" strokeWidth="4" strokeLinecap="round" fill="none" />
+        </g>
+      )}
+      {expression === "winking" && (
+        <g>
+          <circle cx="35" cy="45" r="7" fill="#fff" />
+          <circle cx="35" cy="45" r="14" fill="url(#eye-glow)" />
+          <path d="M 58 45 L 72 45" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
+          <path d="M 40 65 Q 50 72 60 65" stroke="#f472b6" strokeWidth="3" strokeLinecap="round" fill="none" />
+        </g>
+      )}
+      
+      {/* Highlighting curve for 3D sphere effect */}
+      <path d="M 15 50 A 35 35 0 0 1 50 15 A 35 35 0 0 1 85 50" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" fill="none" />
     </svg>
   );
 };
@@ -370,24 +378,24 @@ export const AIChatbot = () => {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 select-none">
+    <div className="fixed bottom-6 left-6 z-50 select-none">
       {/* 1. Chatbot Floating Trigger Button */}
       <button
         onClick={toggleChat}
-        className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 hover:scale-110 shadow-[0_8px_32px_rgba(6,182,212,0.35)] bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 border border-white/20 group ${
+        className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all duration-500 hover:scale-110 shadow-[0_8px_32px_rgba(6,182,212,0.4)] bg-gradient-to-r from-indigo-600 via-purple-600 to-cyan-500 border border-white/30 group ${
           isOpen ? "rotate-90" : ""
         }`}
       >
         {/* Floating Ring Glow */}
-        <span className="absolute inset-0 rounded-full bg-cyan-400 opacity-20 group-hover:scale-125 transition-transform duration-500 animate-ping" />
+        <span className="absolute inset-0 rounded-full bg-cyan-400 opacity-30 group-hover:scale-125 transition-transform duration-500 animate-ping" />
         
         {isOpen ? (
-          <X size={26} className="text-white" />
+          <X size={26} className="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
         ) : (
-          <div className="relative">
-            <Bot size={28} className="text-white animate-float" />
+          <div className="relative animate-float">
+            <RobotFace expression={hasNewMessages ? "happy" : "idle"} size={44} />
             {hasNewMessages && (
-              <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-pink-500 border-2 border-slate-900 animate-bounce" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-pink-500 border-[3px] border-indigo-600 animate-bounce shadow-[0_0_10px_rgba(236,72,153,0.8)]" />
             )}
           </div>
         )}
@@ -401,12 +409,12 @@ export const AIChatbot = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className="absolute bottom-20 right-0 w-[92vw] sm:w-[380px] h-[550px] rounded-[2rem] glass-gradient border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden text-left"
+            className="absolute bottom-20 left-0 w-[92vw] sm:w-[380px] h-[550px] rounded-[2rem] glass-gradient border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden text-left"
           >
             {/* Header */}
-            <div className="p-4 bg-gradient-to-r from-slate-900/90 to-indigo-950/90 border-b border-white/5 flex items-center justify-between">
+            <div className="p-4 bg-gradient-to-r from-indigo-900/90 via-purple-900/80 to-slate-900/90 border-b border-white/10 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.2)]">
               <div className="flex items-center gap-3">
-                <div className="bg-slate-900/60 rounded-2xl p-0.5 border border-cyan-500/20">
+                <div className="bg-slate-900/60 rounded-full p-0.5 border border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
                   <RobotFace expression={expression} size={42} />
                 </div>
                 <div>
@@ -445,8 +453,8 @@ export const AIChatbot = () => {
                   <div
                     className={`max-w-[78%] px-4 py-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                       m.sender === "user"
-                        ? "bg-gradient-to-br from-cyan-600 to-indigo-600 text-white rounded-tr-none shadow-[0_4px_12px_rgba(6,182,212,0.15)] border border-cyan-400/20"
-                        : "bg-slate-900/60 border border-white/5 text-slate-200 rounded-tl-none shadow-[0_4px_12px_rgba(0,0,0,0.1)]"
+                        ? "bg-gradient-to-br from-cyan-500 to-blue-600 text-white rounded-bl-none shadow-[0_4px_15px_rgba(6,182,212,0.25)] border border-cyan-400/30"
+                        : "bg-slate-800/80 backdrop-blur-md border border-cyan-500/20 text-slate-100 rounded-tl-none shadow-[0_4px_15px_rgba(0,0,0,0.2)]"
                     }`}
                   >
                     {m.text}
@@ -479,25 +487,25 @@ export const AIChatbot = () => {
               <div className="px-4 py-2 flex gap-2 overflow-x-auto shrink-0 select-none no-scrollbar border-t border-white/5 bg-slate-950/20 scrollbar-none">
                 <button
                   onClick={() => handleChipClick("Submit Requirements 📝")}
-                  className="shrink-0 text-[10px] sm:text-xs font-semibold py-1.5 px-3 rounded-full bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 hover:border-cyan-400/50 transition-all flex items-center gap-1 shadow-sm"
+                  className="shrink-0 text-[10px] sm:text-xs font-semibold py-1.5 px-3 rounded-full bg-gradient-to-r from-cyan-500/20 to-indigo-500/20 hover:from-cyan-500/30 hover:to-indigo-500/30 text-cyan-200 border border-cyan-500/40 hover:border-cyan-400 transition-all flex items-center gap-1 shadow-[0_0_10px_rgba(6,182,212,0.2)]"
                 >
                   <FileText size={10} /> Submit Requirements
                 </button>
                 <button
                   onClick={() => handleChipClick("Website Designing & UI/UX 🎨")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all"
+                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
                 >
                   Website UI/UX
                 </button>
                 <button
                   onClick={() => handleChipClick("Website Development & Systems 💻")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all"
+                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
                 >
                   Web Development
                 </button>
                 <button
                   onClick={() => handleChipClick("Custom Automation Software ⚙️")}
-                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 transition-all"
+                  className="shrink-0 text-[10px] sm:text-xs py-1.5 px-3 rounded-full bg-slate-800/60 hover:bg-slate-700/80 text-slate-200 border border-white/10 hover:border-cyan-500/30 transition-all shadow-sm"
                 >
                   Custom Software
                 </button>
@@ -531,7 +539,7 @@ export const AIChatbot = () => {
                   <Button
                     type="submit"
                     disabled={isTyping || !inputText.trim()}
-                    className="h-11 w-11 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:opacity-90 shrink-0 text-white shadow-[0_4px_12px_rgba(6,182,212,0.2)]"
+                    className="h-11 w-11 rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-500 hover:opacity-90 shrink-0 text-white shadow-[0_4px_15px_rgba(6,182,212,0.3)] transition-all hover:scale-105"
                     size="icon"
                   >
                     <Send size={15} />
