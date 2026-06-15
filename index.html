@@ -30,7 +30,7 @@
       "@context": "https://schema.org",
       "@graph": [
         {
-          "@type": "Organization",
+          "@type": "ProfessionalService",
           "@id": "https://aismartsys.in/#organization",
           "name": "AI SmartSyS",
           "url": "https://aismartsys.in",
@@ -38,6 +38,14 @@
             "@type": "ImageObject",
             "url": "https://aismartsys.in/logo.png",
             "caption": "AI SmartSyS Logo"
+          },
+          "image": "https://aismartsys.in/logo.png",
+          "telephone": "+91-70241-28029",
+          "email": "vijaytiwari@orbitengineerings.com",
+          "priceRange": "$$",
+          "address": {
+            "@type": "PostalAddress",
+            "addressCountry": "IN"
           },
           "contactPoint": {
             "@type": "ContactPoint",
@@ -55,7 +63,7 @@
           "@id": "https://aismartsys.in/#website",
           "url": "https://aismartsys.in",
           "name": "AI SmartSyS",
-          "description": "Smart AI Solutions for a Smarter Future. AI tools, automation, and smart digital solutions.",
+          "description": "Smart AI Solutions for a Smarter Future. Custom AI software, industrial automation, and smart digital solutions.",
           "publisher": {
             "@id": "https://aismartsys.in/#organization"
           }
@@ -72,6 +80,82 @@
           "about": {
             "@id": "https://aismartsys.in/#organization"
           }
+        },
+        {
+          "@type": "FAQPage",
+          "@id": "https://aismartsys.in/#faq",
+          "isPartOf": {
+            "@id": "https://aismartsys.in/#webpage"
+          },
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What AI services does AI SmartSyS offer?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We offer AI development, chatbot building, data analytics, automation solutions, web and mobile app development powered by artificial intelligence."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How long does an AI project typically take?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Project timelines vary based on complexity. A standard AI solution takes 4-12 weeks from discovery to deployment."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do you offer custom AI solutions?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! Every solution is tailored to your specific business requirements and goals. We don't believe in one-size-fits-all."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What industries do you serve?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We work across e-commerce, healthcare, finance, education, marketing, and more. Our AI solutions adapt to any industry."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do you ensure data security?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "We implement enterprise-grade encryption, secure APIs, and follow industry best practices for data protection and privacy compliance."
+              }
+            }
+          ]
+        },
+        {
+          "@type": "Service",
+          "name": "AI Development & LLM Integration",
+          "serviceType": "Software Development",
+          "provider": {
+            "@id": "https://aismartsys.in/#organization"
+          },
+          "description": "Custom AI model training, natural language processing, LLM integration, and computer vision tools."
+        },
+        {
+          "@type": "Service",
+          "name": "SCADA & Industrial Automation",
+          "serviceType": "Engineering Service",
+          "provider": {
+            "@id": "https://aismartsys.in/#organization"
+          },
+          "description": "Centralized industrial control, IoT sensor integrations, SCADA monitors, and telemetry systems."
+        },
+        {
+          "@type": "Service",
+          "name": "Chatbot & Conversational AI Development",
+          "serviceType": "Software Development",
+          "provider": {
+            "@id": "https://aismartsys.in/#organization"
+          },
+          "description": "Smart AI chatbot building, conversational interface design, and client-support automation."
         }
       ]
     }

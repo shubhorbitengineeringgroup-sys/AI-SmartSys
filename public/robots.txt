@@ -1,33 +1,98 @@
 # robots.txt for AI-SmartSys (aismartsys.in)
 
-# Allow all search engines and AI web crawlers
+# Global Crawler Settings (Standard Search Engines)
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 
-# Specific instructions for AI bots
+# --- AI SEARCH ENGINES & LLM CRAWLERS ---
+
+# OpenAI ChatGPT & GPTBot
 User-agent: GPTBot
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 
+# OpenAI real-time web search
 User-agent: OAI-SearchBot
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 
+# OpenAI ChatGPT web-browsing user actions
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Anthropic Claude indexing agent
 User-agent: ClaudeBot
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 
+# Anthropic Claude web actions
+User-agent: Claude-Web
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Perplexity AI search crawler
 User-agent: PerplexityBot
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
 
+# Google Gemini training & AI search indexing
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Apple Intelligence Siri & search indexing
 User-agent: Applebot
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Apple Intelligence training data agent
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Meta AI (Llama) web search and training bot
+User-agent: Meta-ExternalAgent
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+User-agent: facebookexternalhit
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Cohere AI assistant search crawler
+User-agent: cohere-ai
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# You.com Search agent
+User-agent: YouBot
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Diffbot visual web crawler
+User-agent: diffbot
+Allow: /
+Disallow: /admin
+Disallow: /dashboard
+
+# Microsoft Bing & Copilot agent
+User-agent: Bingbot
 Allow: /
 Disallow: /admin
 Disallow: /dashboard
