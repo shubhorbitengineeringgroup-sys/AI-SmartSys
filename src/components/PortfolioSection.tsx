@@ -197,7 +197,7 @@ const StackingProjectCard = ({ project, index, total, onViewDetails }: StackingC
           opacity,
           top: `${stickyTop}px`,
         }}
-        className="md:sticky relative w-full rounded-[2.2rem] overflow-hidden border border-border/50 hover:border-primary/30 bg-card/25 backdrop-blur-xl transition-colors duration-500 shadow-2xl flex flex-col md:flex-row h-auto md:h-[420px]"
+        className="md:sticky relative w-full rounded-[2.2rem] overflow-hidden border border-border/50 hover:border-primary/30 bg-card/25 backdrop-blur-xl transition-colors duration-500 shadow-2xl flex flex-col md:flex-row h-auto md:h-[460px]"
       >
         {/* Physical stacking shadow layer */}
         <motion.div
@@ -206,21 +206,19 @@ const StackingProjectCard = ({ project, index, total, onViewDetails }: StackingC
         />
 
         {/* Project Image Panel */}
-        <div className="relative w-full md:w-1/2 h-64 md:h-full overflow-hidden bg-muted/20 shrink-0 flex items-center justify-center p-6">
+        <div className="relative w-full md:w-[56%] aspect-video md:aspect-auto md:h-full overflow-hidden bg-muted/10 shrink-0 flex items-center justify-center p-4 md:p-6 transition-colors duration-500 hover:bg-muted/15">
           <img
             src={project.image}
             alt={project.title}
             loading="lazy"
-            className={`w-full h-full transition-transform duration-700 hover:scale-105 ${
-              project.containImage ? "object-contain" : "object-cover object-top"
-            }`}
+            className="w-full h-full object-contain transition-transform duration-700 hover:scale-[1.03] drop-shadow-md"
           />
-          <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-10`} />
-          <div className="absolute inset-0 bg-background/10 mix-blend-overlay" />
+          <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-5`} />
+          <div className="absolute inset-0 bg-background/5 mix-blend-overlay" />
         </div>
 
         {/* Project Description Panel */}
-        <div className="p-8 md:p-10 flex flex-col justify-between flex-grow z-10">
+        <div className="p-6 sm:p-8 md:p-10 flex flex-col justify-between flex-grow z-10">
           <div>
             <div className="flex flex-wrap gap-2 mb-5">
               {project.tags.map((t) => (
