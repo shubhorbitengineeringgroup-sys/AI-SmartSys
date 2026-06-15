@@ -432,13 +432,14 @@ const ContactSection = () => {
                   <div className="flex items-center gap-2.5">
                     <AICoreStatus />
                     <div className="flex flex-col">
-                      <span className="text-xs font-bold text-foreground/80 tracking-wide font-mono">SmartSys AI Onboarding</span>
+                      <span className="text-xs font-bold text-foreground/80 tracking-wide font-mono hidden sm:inline">SmartSys AI Onboarding</span>
+                      <span className="text-xs font-bold text-foreground/80 tracking-wide font-mono sm:hidden inline">AI Onboarding</span>
                       <span className="text-[9px] text-emerald-500 dark:text-emerald-400 font-mono font-medium flex items-center gap-1">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Core Active
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <button 
                       onClick={() => setShowSettings(!showSettings)}
                       className={`p-1.5 rounded-lg border transition-all duration-300 ${
@@ -452,7 +453,7 @@ const ContactSection = () => {
                       <Settings size={13} className={showSettings ? "animate-spin-slow" : ""} />
                     </button>
                     {currentStep < STEPS.length && (
-                      <span className="text-[10px] font-mono text-indigo-500 dark:text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                      <span className="text-[10px] font-mono text-indigo-500 dark:text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 whitespace-nowrap">
                         Step {currentStep + 1} of {STEPS.length}
                       </span>
                     )}
@@ -635,7 +636,7 @@ const ContactSection = () => {
                                 placeholder={STEPS[currentStep].placeholder}
                                 required
                                 rows={2}
-                                className="pl-10 bg-white/50 dark:bg-slate-950/30 border-border/60 dark:border-white/10 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-sm"
+                                className="pl-12 bg-white/50 dark:bg-slate-950/30 border-border/60 dark:border-white/10 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-sm"
                               />
                             </>
                           ) : (
@@ -649,7 +650,7 @@ const ContactSection = () => {
                                 onChange={(e) => setInputValue(e.target.value)}
                                 placeholder={STEPS[currentStep].placeholder}
                                 required
-                                className="pl-10 bg-white/50 dark:bg-slate-950/30 border-border/60 dark:border-white/10 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-sm"
+                                className="pl-12 bg-white/50 dark:bg-slate-950/30 border-border/60 dark:border-white/10 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-sm"
                               />
                             </>
                           )}
@@ -694,100 +695,137 @@ const ContactSection = () => {
               </div>
             ) : (
               /* Classic Form UI */
-              <form onSubmit={handleClassicSubmit} className="px-6 pb-6 flex flex-col flex-grow justify-between overflow-y-auto scrollbar-none space-y-4">
-                <div className="space-y-3">
-                  <div className="relative">
-                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />
-                    <Input
-                      placeholder="Your Name"
-                      value={form.name}
-                      onChange={(e) => {
-                        setForm({ ...form, name: e.target.value });
-                        if (classicErrors.name) setClassicErrors({ ...classicErrors, name: "" });
-                      }}
-                      required
-                      className={`pl-10 bg-white/50 dark:bg-slate-950/30 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
-                        classicErrors.name ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                      }`}
-                    />
+              <form onSubmit={handleClassicSubmit} className="px-6 pb-6 flex flex-col flex-grow justify-between overflow-y-auto scrollbar-none space-y-5 lg:space-y-6">
+                <div className="space-y-4 lg:space-y-5">
+                  {/* Subtle contextual header */}
+                  <div className="space-y-1 pb-1 border-b border-border/20 select-none">
+                    <h4 className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 tracking-wider font-mono uppercase">Direct Scoping Queue</h4>
+                    <p className="text-[10.5px] text-muted-foreground leading-normal">
+                      Submit your details to enter our priority engineering queue for a custom scope assessment.
+                    </p>
+                  </div>
+
+                  {/* Name Input Group */}
+                  <div className={`group bg-slate-500/5 dark:bg-slate-950/20 border rounded-2xl px-4 py-2 transition-all duration-300 focus-within:border-indigo-500/50 focus-within:bg-white dark:focus-within:bg-slate-950/30 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.06)] hover:border-slate-300 dark:hover:border-white/10 ${
+                    classicErrors.name ? "border-rose-500/60" : "border-slate-200/60 dark:border-white/5"
+                  }`}>
+                    <label className="text-[9px] font-bold text-muted-foreground/80 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 tracking-wider uppercase font-mono block transition-colors select-none mb-0.5">
+                      Your Name
+                    </label>
+                    <div className="relative flex items-center">
+                      <User size={15} className="absolute left-0 text-muted-foreground/50 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors z-10" />
+                      <Input
+                        placeholder="Your Name"
+                        value={form.name}
+                        onChange={(e) => {
+                          setForm({ ...form, name: e.target.value });
+                          if (classicErrors.name) setClassicErrors({ ...classicErrors, name: "" });
+                        }}
+                        required
+                        className="pl-7 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none"
+                      />
+                    </div>
                     {classicErrors.name && (
                       <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.name}</p>
                     )}
                   </div>
 
-                  <div className="relative">
-                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />
-                    <Input
-                      type="email"
-                      placeholder="Email Address"
-                      value={form.email}
-                      onChange={(e) => {
-                        setForm({ ...form, email: e.target.value });
-                        if (classicErrors.email) setClassicErrors({ ...classicErrors, email: "" });
-                      }}
-                      required
-                      className={`pl-10 bg-white/50 dark:bg-slate-950/30 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
-                        classicErrors.email ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                      }`}
-                    />
+                  {/* Email Input Group */}
+                  <div className={`group bg-slate-500/5 dark:bg-slate-950/20 border rounded-2xl px-4 py-2 transition-all duration-300 focus-within:border-indigo-500/50 focus-within:bg-white dark:focus-within:bg-slate-950/30 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.06)] hover:border-slate-300 dark:hover:border-white/10 ${
+                    classicErrors.email ? "border-rose-500/60" : "border-slate-200/60 dark:border-white/5"
+                  }`}>
+                    <label className="text-[9px] font-bold text-muted-foreground/80 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 tracking-wider uppercase font-mono block transition-colors select-none mb-0.5">
+                      Email Address
+                    </label>
+                    <div className="relative flex items-center">
+                      <Mail size={15} className="absolute left-0 text-muted-foreground/50 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors z-10" />
+                      <Input
+                        type="email"
+                        placeholder="Email Address"
+                        value={form.email}
+                        onChange={(e) => {
+                          setForm({ ...form, email: e.target.value });
+                          if (classicErrors.email) setClassicErrors({ ...classicErrors, email: "" });
+                        }}
+                        required
+                        className="pl-7 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none"
+                      />
+                    </div>
                     {classicErrors.email && (
                       <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.email}</p>
                     )}
                   </div>
 
-                  <div className="relative">
-                    <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />
-                    <Input
-                      placeholder="Phone Number (e.g., +91 70241 28029)"
-                      value={form.phone}
-                      onChange={(e) => {
-                        setForm({ ...form, phone: e.target.value });
-                        if (classicErrors.phone) setClassicErrors({ ...classicErrors, phone: "" });
-                      }}
-                      required
-                      className={`pl-10 bg-white/50 dark:bg-slate-950/30 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
-                        classicErrors.phone ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                      }`}
-                    />
+                  {/* Phone Input Group */}
+                  <div className={`group bg-slate-500/5 dark:bg-slate-950/20 border rounded-2xl px-4 py-2 transition-all duration-300 focus-within:border-indigo-500/50 focus-within:bg-white dark:focus-within:bg-slate-950/30 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.06)] hover:border-slate-300 dark:hover:border-white/10 ${
+                    classicErrors.phone ? "border-rose-500/60" : "border-slate-200/60 dark:border-white/5"
+                  }`}>
+                    <label className="text-[9px] font-bold text-muted-foreground/80 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 tracking-wider uppercase font-mono block transition-colors select-none mb-0.5">
+                      Phone Number
+                    </label>
+                    <div className="relative flex items-center">
+                      <Phone size={15} className="absolute left-0 text-muted-foreground/50 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors z-10" />
+                      <Input
+                        placeholder="Phone Number (e.g., +91 70241 28029)"
+                        value={form.phone}
+                        onChange={(e) => {
+                          setForm({ ...form, phone: e.target.value });
+                          if (classicErrors.phone) setClassicErrors({ ...classicErrors, phone: "" });
+                        }}
+                        required
+                        className="pl-7 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none"
+                      />
+                    </div>
                     {classicErrors.phone && (
                       <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.phone}</p>
                     )}
                   </div>
 
-                  <div className="relative">
-                    <MessageSquare size={16} className="absolute left-3.5 top-4 text-muted-foreground/60 z-10" />
-                    <Textarea
-                      placeholder="Describe your project requirements, goals, and target timeline in detail..."
-                      value={form.message}
-                      onChange={(e) => {
-                        setForm({ ...form, message: e.target.value });
-                        if (classicErrors.message) setClassicErrors({ ...classicErrors, message: "" });
-                      }}
-                      required
-                      rows={3}
-                      className={`pl-10 pt-2.5 bg-white/50 dark:bg-slate-950/30 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
-                        classicErrors.message ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                      }`}
-                    />
+                  {/* Project Details Textarea Group */}
+                  <div className={`group bg-slate-500/5 dark:bg-slate-950/20 border rounded-2xl px-4 py-3 transition-all duration-300 focus-within:border-indigo-500/50 focus-within:bg-white dark:focus-within:bg-slate-950/30 focus-within:shadow-[0_0_20px_rgba(99,102,241,0.06)] hover:border-slate-300 dark:hover:border-white/10 ${
+                    classicErrors.message ? "border-rose-500/60" : "border-slate-200/60 dark:border-white/5"
+                  }`}>
+                    <label className="text-[9px] font-bold text-muted-foreground/80 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 tracking-wider uppercase font-mono block transition-colors select-none mb-1">
+                      Project Details
+                    </label>
+                    <div className="relative flex items-start">
+                      <MessageSquare size={15} className="absolute left-0 top-1 text-muted-foreground/50 group-focus-within:text-indigo-500 dark:group-focus-within:text-indigo-400 transition-colors z-10" />
+                      <Textarea
+                        placeholder="Describe your project requirements, goals, and target timeline in detail..."
+                        value={form.message}
+                        onChange={(e) => {
+                          setForm({ ...form, message: e.target.value });
+                          if (classicErrors.message) setClassicErrors({ ...classicErrors, message: "" });
+                        }}
+                        required
+                        rows={5}
+                        className="pl-7 bg-transparent border-0 resize-none text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none outline-none min-h-[90px]"
+                      />
+                    </div>
                     {/* Character counter */}
-                    <div className="flex justify-between items-center text-[10px] mt-1 font-mono px-1">
-                      <span className={form.message.trim().length < 100 ? "text-amber-400 animate-pulse font-semibold" : "text-emerald-400 font-bold"}>
+                    <div className="flex justify-between items-center text-[10px] mt-1.5 font-mono px-1">
+                      <span className={form.message.trim().length < 100 ? "text-amber-500 animate-pulse font-semibold" : "text-emerald-500 dark:text-emerald-400 font-bold"}>
                         {form.message.trim().length < 100 
                           ? `Min 100 chars (${100 - form.message.trim().length} more)` 
                           : "Requirements: Complete ✓"}
                       </span>
-                      <span className={form.message.trim().length < 100 ? "text-muted-foreground/60" : "text-emerald-400"}>
+                      <span className={form.message.trim().length < 100 ? "text-muted-foreground/60" : "text-emerald-500 dark:text-emerald-400 font-bold"}>
                         {form.message.trim().length}/100
                       </span>
                     </div>
-                    {classicErrors.message && (
-                      <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.message}</p>
-                    )}
+                        {classicErrors.message && (
+                        <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.message}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
 
                 <div>
-                  <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all duration-300 hover:scale-[1.01]" size="lg" disabled={isSubmitting}>
+                  <Button 
+                    type="submit" 
+                    className="w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/35 transition-all duration-300 hover:scale-[1.01] hover:-translate-y-0.5" 
+                    size="lg" 
+                    disabled={isSubmitting}
+                  >
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -795,7 +833,7 @@ const ContactSection = () => {
                       </span>
                     ) : (
                       <>
-                        <Send size={16} className="mr-2" /> Send Message
+                        <Send size={15} className="mr-2" /> Send Message
                       </>
                     )}
                   </Button>

@@ -399,6 +399,29 @@ export const AIChatbot = () => {
 
   const colors = THEMES[terminalTheme];
 
+  const [isNearContact, setIsNearContact] = useState(false);
+
+  // Intersection Observer to detect if contact section is visible
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsNearContact(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+
+    const contactElement = document.getElementById("contact");
+    if (contactElement) {
+      observer.observe(contactElement);
+    }
+
+    return () => {
+      if (contactElement) {
+        observer.unobserve(contactElement);
+      }
+    };
+  }, []);
+
   // Initialize Session ID
   useEffect(() => {
     let sid = localStorage.getItem("smarty_chat_session_id");
@@ -870,7 +893,7 @@ export const AIChatbot = () => {
   };
 
   return (
-    <div className={`fixed z-[100] select-none ${isMaximized ? "inset-0 flex items-center justify-center p-4" : "bottom-6 left-6"}`}>
+    <div className={`fixed z-[100] select-none ${isMaximized ? "inset-0 flex items-center justify-center p-4" : "bottom-6 left-6"} ${!isOpen && isNearContact ? "hidden lg:block" : ""}`}>
       {/* 1. Chatbot Floating Trigger Button */}
       {!isOpen && (
         <button
