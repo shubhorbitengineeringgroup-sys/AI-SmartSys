@@ -335,7 +335,7 @@ const ContactSection = () => {
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}>
           {/* Left Column: Dual Form Box */}
-          <div className="premium-card flex flex-col h-[550px] lg:h-[660px] overflow-hidden hover:translate-y-0 hover:scale-100">
+          <div className="premium-card flex flex-col h-[590px] sm:h-[620px] lg:h-[660px] overflow-hidden hover:translate-y-0 hover:scale-100">
             {/* Tab Switcher at the top of the card */}
             <div className="flex p-1 bg-slate-100/50 dark:bg-slate-950/80 rounded-xl border border-slate-200/50 dark:border-white/5 mx-6 mt-6 mb-2 z-10">
               <button
@@ -722,7 +722,7 @@ const ContactSection = () => {
                           if (classicErrors.name) setClassicErrors({ ...classicErrors, name: "" });
                         }}
                         required
-                        className="pl-7 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none"
+                        className="pl-7 pr-0 py-0 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-0 shadow-none"
                       />
                     </div>
                     {classicErrors.name && (
@@ -748,7 +748,7 @@ const ContactSection = () => {
                           if (classicErrors.email) setClassicErrors({ ...classicErrors, email: "" });
                         }}
                         required
-                        className="pl-7 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none"
+                        className="pl-7 pr-0 py-0 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-0 shadow-none"
                       />
                     </div>
                     {classicErrors.email && (
@@ -773,7 +773,7 @@ const ContactSection = () => {
                           if (classicErrors.phone) setClassicErrors({ ...classicErrors, phone: "" });
                         }}
                         required
-                        className="pl-7 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none"
+                        className="pl-7 pr-0 py-0 bg-transparent border-0 h-8 text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-0 shadow-none"
                       />
                     </div>
                     {classicErrors.phone && (
@@ -799,7 +799,7 @@ const ContactSection = () => {
                         }}
                         required
                         rows={5}
-                        className="pl-7 bg-transparent border-0 resize-none text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0 focus:border-0 shadow-none outline-none min-h-[90px]"
+                        className="pl-7 pr-0 py-0 bg-transparent border-0 resize-none text-sm text-foreground placeholder:text-muted-foreground/45 rounded-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-0 shadow-none outline-none min-h-[90px]"
                       />
                     </div>
                     {/* Character counter */}

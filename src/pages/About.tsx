@@ -3,6 +3,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CheckCircle2, Target, Eye, Cpu, Cloud, Code, Sparkles, Activity, Layers } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SEO from "@/components/SEO";
 
 const Counter = ({ value, suffix = "" }: { value: number; suffix?: string }) => {
   const [count, setCount] = useState(0);
@@ -180,6 +181,11 @@ const About = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+      <SEO 
+        title="About Us | AI-SmartSys Team & Mission" 
+        description="Learn about AI-SmartSys, a leading provider of intelligent AI software, industrial SCADA automation, and robust enterprise development tools. Meet our goals and engineering principles."
+        keywords="about AI SmartSys, AI engineering, automation team, smart technology company India, machine learning solutions providers"
+      />
       {/* Background Elements */}
       <div className="fixed inset-0 pointer-events-none z-0">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-secondary/20 rounded-full blur-[150px] opacity-70" />

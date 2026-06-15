@@ -10,6 +10,7 @@ import CaptionGenerator from "@/components/tools/CaptionGenerator";
 import ResumeBuilder from "@/components/tools/ResumeBuilder";
 import ImageGenerator from "@/components/tools/ImageGenerator";
 import ChatbotBuilder from "@/components/tools/ChatbotBuilder";
+import SEO from "@/components/SEO";
 
 
 const Dashboard = () => {
@@ -42,6 +43,7 @@ const Dashboard = () => {
 
     return (
         <div className="min-h-screen bg-background">
+            <SEO noindex={true} title="User Dashboard" />
             <Navbar />
 
             <main className="pt-32 pb-20 container mx-auto px-4 relative">

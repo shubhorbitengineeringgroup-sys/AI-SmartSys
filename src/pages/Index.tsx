@@ -5,6 +5,7 @@ import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 import NeuralCanvas from "@/components/NeuralCanvas";
 import { AIChatbot } from "@/components/AIChatbot";
+import SEO from "@/components/SEO";
 
 
 const AboutSection = lazy(() => import("@/components/AboutSection"));
@@ -63,6 +64,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen relative bg-background text-foreground overflow-x-hidden">
+      <SEO 
+        title="Smart AI Solutions for a Smarter Future" 
+        description="Empower your business with AI-SmartSys. Specialized in customized AI software development, enterprise automation, smart SCADA systems, chatbots, and advanced web technologies." 
+        keywords="AI development, smart automation, SCADA systems, chatbot development, web development company, machine learning software, India AI solutions"
+      />
       {/* Scroll Progress Indicator */}
       <motion.div className="scroll-progress-bar" style={{ scaleX }} />
 

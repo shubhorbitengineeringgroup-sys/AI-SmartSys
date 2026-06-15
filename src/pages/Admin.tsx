@@ -8,6 +8,7 @@ import { AdminInquiries } from "@/components/tools/AdminInquiries";
 import { GlowOrb } from "@/components/TechPattern";
 import { Lock, Mail, ShieldAlert, LogOut, ArrowRight, Bot } from "lucide-react";
 import { toast } from "sonner";
+import SEO from "@/components/SEO";
 
 // Authorized administrator email list
 // Edit this array to add or remove authorized administrator accounts!
@@ -84,6 +85,7 @@ const Admin = () => {
   if (!session) {
     return (
       <div className="min-h-screen bg-background relative flex flex-col justify-between overflow-hidden">
+        <SEO noindex={true} title="Admin Portal - Sign In" />
         <Navbar />
         <GlowOrb className="w-[500px] h-[500px] top-10 -left-60" color="primary" />
         <GlowOrb className="w-[400px] h-[400px] bottom-10 -right-40" color="secondary" />
@@ -162,6 +164,7 @@ const Admin = () => {
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background relative flex flex-col justify-between overflow-hidden">
+        <SEO noindex={true} title="Admin Portal - Access Denied" />
         <Navbar />
         <GlowOrb className="w-[500px] h-[500px] top-10 -left-60" color="destructive" />
 
@@ -202,6 +205,7 @@ const Admin = () => {
   // 4. Render Authorized Admin Dashboard (Inquiries & Chat Logs)
   return (
     <div className="min-h-screen bg-background">
+      <SEO noindex={true} title="Admin Portal" />
       <Navbar />
       
       <main className="pt-32 pb-20 container mx-auto px-4 relative">
