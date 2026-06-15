@@ -379,7 +379,7 @@ export const AIChatbot = () => {
 
   // Project Brief Form Builder State (Dashboard panel)
   const [briefService, setBriefService] = useState("Website Design & Development");
-  const [briefBudget, setBriefBudget] = useState("$1,000 - $5,000");
+  const [briefBudget, setBriefBudget] = useState("$1,000 - $5,000 (~₹83,000 - ₹4,15,000 INR)");
   const [briefTimeline, setBriefTimeline] = useState("2-3 Months");
   const [briefDetails, setBriefDetails] = useState("");
 
@@ -507,6 +507,18 @@ export const AIChatbot = () => {
       setHasNewMessages(true);
     }
   }, [messages, isOpen]);
+
+  // Sync open state to body tag
+  useEffect(() => {
+    if (isOpen) {
+      document.body.classList.add("chatbot-open");
+    } else {
+      document.body.classList.remove("chatbot-open");
+    }
+    return () => {
+      document.body.classList.remove("chatbot-open");
+    };
+  }, [isOpen]);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -858,7 +870,7 @@ export const AIChatbot = () => {
   };
 
   return (
-    <div className={`fixed z-50 select-none ${isMaximized ? "inset-0 flex items-center justify-center p-4" : "bottom-6 left-6"}`}>
+    <div className={`fixed z-[100] select-none ${isMaximized ? "inset-0 flex items-center justify-center p-4" : "bottom-6 left-6"}`}>
       {/* 1. Chatbot Floating Trigger Button */}
       {!isOpen && (
         <button
@@ -1250,10 +1262,10 @@ export const AIChatbot = () => {
                           onChange={(e) => setBriefBudget(e.target.value)}
                           className={`w-full h-9 ${isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-slate-900 border-white/5 text-slate-300"} border text-xs rounded-xl px-2 outline-none`}
                         >
-                          <option>&lt; $1,000</option>
-                          <option>$1,000 - $5,000</option>
-                          <option>$5,000 - $10,000</option>
-                          <option>&gt; $10,000</option>
+                          <option>&lt; $1,000 (~₹83,000 INR)</option>
+                          <option>$1,000 - $5,000 (~₹83,000 - ₹4,15,000 INR)</option>
+                          <option>$5,000 - $10,000 (~₹4,15,000 - ₹8,30,000 INR)</option>
+                          <option>&gt; $10,000 (~₹8,30,000+ INR)</option>
                         </select>
                       </div>
                       <div className="space-y-1">

@@ -551,9 +551,9 @@ const HeroSection = () => {
             />
           </div>
 
-          <AnimatedCounter target={150} suffix="+" label="Projects Delivered" />
-          <AnimatedCounter target={50} suffix="+" label="Happy Clients" />
-          <AnimatedCounter target={8} suffix="+" label="Years Experience" />
+          <AnimatedCounter target={99} suffix="%" label="System Uptime" />
+          <AnimatedCounter target={15} suffix="+" label="AI Systems Ready" />
+          <AnimatedCounter target={100} suffix="%" label="Secure & Encrypted" />
           <AnimatedCounter target={24} suffix="/7" label="Support Available" />
         </motion.div>
       </div>

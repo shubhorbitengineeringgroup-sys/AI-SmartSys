@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Phone, Mail, Send, MessageSquare, Check, RefreshCw, AlertCircle } from "lucide-react";
+import { Phone, Mail, Send, MessageSquare, Check, RefreshCw, AlertCircle, User, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import customerOnboardingImg from "@/assets/images/customer_onboarding.png";
+import { askOnboardingGemini, GeminiMessage } from "@/lib/gemini";
 
 interface ChatMessage {
   id: string;
@@ -61,6 +62,37 @@ const STEPS: Step[] = [
   }
 ];
 
+// Animated SVG AI core status indicators
+const AICoreStatus = () => (
+  <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
+    <div className="absolute inset-0 rounded-full bg-indigo-500/20 animate-ping" />
+    <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_8s_linear_infinite] relative z-10">
+      <circle cx="50" cy="50" r="40" stroke="url(#coreGrad)" strokeWidth="5" strokeDasharray="30 15 10 15" fill="none" />
+      <circle cx="50" cy="50" r="25" stroke="url(#coreGrad)" strokeWidth="7" strokeDasharray="10 10" fill="none" />
+      <circle cx="50" cy="50" r="10" fill="#6366f1" />
+      <defs>
+        <linearGradient id="coreGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#8b5cf6" />
+          <stop offset="100%" stopColor="#06b6d4" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+);
+
+const AICoreMini = () => (
+  <svg viewBox="0 0 100 100" className="w-full h-full animate-[spin_4s_linear_infinite]">
+    <circle cx="50" cy="50" r="40" stroke="url(#coreGradMini)" strokeWidth="8" strokeDasharray="40 20" fill="none" />
+    <circle cx="50" cy="50" r="15" fill="#8b5cf6" />
+    <defs>
+      <linearGradient id="coreGradMini" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#8b5cf6" />
+        <stop offset="100%" stopColor="#06b6d4" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
 const ContactSection = () => {
   const { ref, isVisible } = useScrollReveal();
   
@@ -82,22 +114,48 @@ const ContactSection = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isAgentTyping, setIsAgentTyping] = useState<boolean>(false);
   const [errorText, setErrorText] = useState<string>("");
+  const [chatLanguage, setChatLanguage] = useState<'en' | 'hi'>("en");
+  const [chatTone, setChatTone] = useState<'professional' | 'witty'>("witty");
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  // Initialize chatbot
-  useEffect(() => {
-    if (isConversational && messages.length === 0) {
-      setMessages([
-        {
-          id: "msg-0",
-          sender: "agent",
-          text: STEPS[0].question as string
-        }
-      ]);
+  // Helper for dynamic onboarding chatbot greeting
+  const getInitialGreeting = (lang: 'en' | 'hi', tone: 'professional' | 'witty'): string => {
+    if (lang === 'hi') {
+      return tone === 'witty'
+        ? "Oho! Aaiye aaiye, welcome! *waves mechanical arm* Main hoon Smarty, aapka AI tech partner. Sabse pehle apna shubh naam batayein, taaki dosti shuru ho sake! 😉"
+        : "Namaste, AI-SmartSys onboarding portal me aapka swagat hai. Main Smarty hoon. Kripya apna naam batakar onboarding process shuru karein. 🙏";
+    } else {
+      return tone === 'witty'
+        ? "Hi! I'm Smarty, your AI onboarding assistant. Let's make something amazing together! To begin, what is your name? 😊"
+        : "Welcome to AI-SmartSys. I am Smarty, your onboarding assistant. To initiate your project consultation, please share your name. 💼";
     }
-  }, [isConversational, messages.length]);
+  };
+
+  // Initialize or update initial chatbot greeting when settings change
+  useEffect(() => {
+    if (isConversational) {
+      if (messages.length === 0) {
+        setMessages([
+          {
+            id: "msg-0",
+            sender: "agent",
+            text: getInitialGreeting(chatLanguage, chatTone)
+          }
+        ]);
+      } else if (messages.length === 1 && messages[0].sender === "agent") {
+        setMessages([
+          {
+            id: "msg-0",
+            sender: "agent",
+            text: getInitialGreeting(chatLanguage, chatTone)
+          }
+        ]);
+      }
+    }
+  }, [isConversational, messages.length, chatLanguage, chatTone]);
 
   // Scroll to bottom of chat
   useEffect(() => {
@@ -107,91 +165,79 @@ const ContactSection = () => {
   }, [messages, isAgentTyping]);
 
   // Handle Conversational Submit
-  const handleChatSubmit = (e: React.FormEvent) => {
+  const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorText("");
 
-    const step = STEPS[currentStep];
     const val = inputValue.trim();
-
-    // Run field validation
-    if (!step.validation(val)) {
-      if (step.field === "email") {
-        setErrorText("Please enter a valid email address.");
-      } else if (step.field === "phone") {
-        setErrorText("Please enter a valid phone number (10 to 15 digits) or 'skip'.");
-      } else if (step.field === "message") {
-        setErrorText(`Please write at least 100 characters. Current count: ${val.length}/100`);
-      } else {
-        setErrorText("Please enter a valid response.");
-      }
-      return;
-    }
-
-    // Capture response
-    const key = step.field;
-    let finalVal = val;
-    if (key === "phone" && val.toLowerCase() === "skip") {
-      finalVal = "Not provided";
-    }
-    
-    const updatedForm = { ...form, [key]: finalVal };
-    setForm(updatedForm);
+    if (!val) return;
 
     // Add user response message
     const userMsgId = `user-${Date.now()}`;
-    setMessages(prev => [...prev, { id: userMsgId, sender: "user", text: val }]);
+    const newMessages = [...messages, { id: userMsgId, sender: "user", text: val }];
+    setMessages(newMessages);
     setInputValue("");
-
-    const nextStep = currentStep + 1;
 
     // Simulate Agent Typing next question
     setIsAgentTyping(true);
-    
-    setTimeout(() => {
-      setIsAgentTyping(false);
-      
-      if (nextStep < STEPS.length) {
-        setCurrentStep(nextStep);
-        const nextQ = STEPS[nextStep].question;
-        const questionText = typeof nextQ === "function" 
-          ? nextQ(updatedForm.name) 
-          : nextQ;
-        
-        setMessages(prev => [
-          ...prev, 
-          { id: `agent-${Date.now()}`, sender: "agent", text: questionText }
-        ]);
-      } else {
-        // Form Complete
-        setCurrentStep(STEPS.length);
-        setMessages(prev => [
-          ...prev,
-          { 
-            id: `agent-end-${Date.now()}`, 
-            sender: "agent", 
-            text: "Perfect! I have received all your information. Submitting request..." 
-          }
-        ]);
-        
-        // Submit to Supabase contact_submissions
-        supabase.from("contact_submissions").insert({
-          name: updatedForm.name,
-          email: updatedForm.email,
-          phone: updatedForm.phone,
-          message: updatedForm.message,
-          source: "onboarding_bot"
-        }).then(({ error }) => {
-          if (error) {
-            console.error("Supabase insert failed for onboarding bot:", error.message);
-          }
-          toast.success("Request sent! Our team will contact you shortly.");
-        }).catch(err => {
-          console.error("Error submitting onboarding bot requirements:", err);
-          toast.success("Request sent! Our team will contact you shortly.");
-        });
+
+    try {
+      // Map history to GeminiMessage format
+      const chatHistory: GeminiMessage[] = newMessages.map(msg => ({
+        role: msg.sender === "user" ? "user" : "model",
+        parts: [{ text: msg.text }]
+      }));
+
+      // Send to Gemini Onboarding with language & tone
+      const rawReply = await askOnboardingGemini(val, chatHistory.slice(0, -1), chatLanguage, chatTone);
+
+      // Check for submission tag [ONBOARDING_DATA: {...}]
+      const match = rawReply.match(/\[ONBOARDING_DATA:\s*(\{.*?\})\]/);
+
+      let cleanReply = rawReply;
+      let dataToSubmit = null;
+
+      if (match) {
+        cleanReply = rawReply.replace(/\[ONBOARDING_DATA:.*?\]/, "").trim();
+        try {
+          dataToSubmit = JSON.parse(match[1]);
+        } catch (err) {
+          console.error("Failed to parse onboarding data JSON:", err);
+        }
       }
-    }, 900);
+
+      setIsAgentTyping(false);
+      setMessages(prev => [...prev, { id: `agent-${Date.now()}`, sender: "agent", text: cleanReply }]);
+
+      if (dataToSubmit) {
+        // Form Complete
+        setCurrentStep(STEPS.length); // Sets node wizard to complete state
+        
+        // Submit to Supabase
+        const { error } = await supabase.from("contact_submissions").insert({
+          name: dataToSubmit.name,
+          email: dataToSubmit.email,
+          phone: dataToSubmit.phone,
+          message: dataToSubmit.message,
+          source: "onboarding_bot"
+        });
+
+        if (error) {
+          console.error("Supabase insert failed for onboarding bot:", error.message);
+        }
+        toast.success("Request sent! Our team will contact you shortly.");
+      } else {
+        // Update progress node step based on message index
+        const nextStepIdx = newMessages.filter(m => m.sender === "user").length;
+        if (nextStepIdx < STEPS.length) {
+          setCurrentStep(nextStepIdx);
+        }
+      }
+    } catch (err) {
+      console.error("Error in onboarding chat submit:", err);
+      setIsAgentTyping(false);
+      toast.error("Oops! Something went wrong. Please try again.");
+    }
   };
 
   // Reset Conversational Form
@@ -203,7 +249,7 @@ const ContactSection = () => {
       {
         id: `msg-${Date.now()}`,
         sender: "agent",
-        text: STEPS[0].question as string
+        text: getInitialGreeting(chatLanguage, chatTone)
       }
     ]);
   };
@@ -285,100 +331,337 @@ const ContactSection = () => {
       <div className="container mx-auto relative z-10" ref={ref}>
         <SectionHeader badge="Contact Us" title="Get In Touch" description="Ready to transform your business with AI? Let's talk." />
         
-        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-5xl mx-auto transition-all duration-700 ${
+        <div className={`grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-6xl mx-auto items-center lg:items-start transition-all duration-700 ${
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}>
           {/* Left Column: Dual Form Box */}
-          <div className="premium-card flex flex-col justify-between min-h-[460px]">
+          <div className="premium-card flex flex-col h-[550px] lg:h-[660px] overflow-hidden hover:translate-y-0 hover:scale-100">
+            {/* Tab Switcher at the top of the card */}
+            <div className="flex p-1 bg-slate-100/50 dark:bg-slate-950/80 rounded-xl border border-slate-200/50 dark:border-white/5 mx-6 mt-6 mb-2 z-10">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConversational(true);
+                  resetChat();
+                }}
+                className={`flex-1 py-2 text-xs font-mono font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                  isConversational
+                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <MessageSquare size={13} />
+                <span>AI Chat Agent</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsConversational(false)}
+                className={`flex-1 py-2 text-xs font-mono font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                  !isConversational
+                    ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <Send size={12} />
+                <span>Classic Form</span>
+              </button>
+            </div>
+
+            {/* Step Progress Bar */}
+            {isConversational && currentStep < STEPS.length && (
+              <div className="px-6 pt-3 pb-1">
+                <div className="relative flex justify-between items-center w-full max-w-[320px] mx-auto">
+                  {/* Progress Line Background */}
+                  <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-slate-200 dark:bg-slate-800 -translate-y-1/2 rounded-full pointer-events-none" />
+                  
+                  {/* Glowing Active Progress Line */}
+                  <div 
+                    className="absolute top-1/2 left-0 h-[2px] bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-500 dark:to-indigo-500 -translate-y-1/2 rounded-full transition-all duration-500 pointer-events-none"
+                    style={{ width: `${(currentStep / (STEPS.length - 1)) * 100}%` }}
+                  />
+
+                  {/* Step Nodes */}
+                  {STEPS.map((step, idx) => {
+                    const isCompleted = idx < currentStep;
+                    const isActive = idx === currentStep;
+                    
+                    const StepIcon = () => {
+                      if (isCompleted) return <Check size={11} className="text-white" />;
+                      switch (step.field) {
+                        case "name": return <User size={11} />;
+                        case "email": return <Mail size={11} />;
+                        case "phone": return <Phone size={11} />;
+                        case "message": return <MessageSquare size={11} />;
+                        default: return null;
+                      }
+                    };
+
+                    return (
+                      <div key={step.field} className="relative z-10 flex flex-col items-center">
+                        <motion.div 
+                          animate={isActive ? { scale: [1, 1.12, 1] } : {}}
+                          transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                          className={`w-6.5 h-6.5 rounded-full flex items-center justify-center transition-all duration-500 ${
+                            isCompleted 
+                              ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/20" 
+                              : isActive 
+                                ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white ring-4 ring-indigo-500/20 shadow-md shadow-indigo-500/30" 
+                                : "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-muted-foreground/60"
+                          }`}
+                          style={{ width: "26px", height: "26px" }}
+                        >
+                          <StepIcon />
+                        </motion.div>
+                        <span className={`text-[8px] font-mono mt-1 font-semibold uppercase tracking-wider hidden sm:block ${
+                          isActive ? "text-indigo-500 dark:text-indigo-400 font-bold" : isCompleted ? "text-emerald-500" : "text-muted-foreground/40"
+                        }`}>
+                          {step.field}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {isConversational ? (
               /* Conversational Mode UI */
-              <div className="p-6 md:p-8 flex flex-col justify-between h-full flex-grow">
-                <div>
-                  <div className="flex justify-between items-center border-b border-border/50 pb-3 mb-4 select-none">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-xs font-semibold text-foreground/80 tracking-wide font-mono">SmartSys Onboarding Bot</span>
+              <div className="px-6 pb-6 flex flex-col flex-grow justify-between overflow-hidden">
+                {/* Header */}
+                <div className="flex justify-between items-center border-b border-border/50 pb-2 mb-3 select-none">
+                  <div className="flex items-center gap-2.5">
+                    <AICoreStatus />
+                    <div className="flex flex-col">
+                      <span className="text-xs font-bold text-foreground/80 tracking-wide font-mono">SmartSys AI Onboarding</span>
+                      <span className="text-[9px] text-emerald-500 dark:text-emerald-400 font-mono font-medium flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Core Active
+                      </span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => setShowSettings(!showSettings)}
+                      className={`p-1.5 rounded-lg border transition-all duration-300 ${
+                        showSettings 
+                          ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-500" 
+                          : "border-border/60 hover:bg-slate-500/10 text-muted-foreground"
+                      }`}
+                      title="Agent Settings"
+                      type="button"
+                    >
+                      <Settings size={13} className={showSettings ? "animate-spin-slow" : ""} />
+                    </button>
                     {currentStep < STEPS.length && (
-                      <span className="text-[10px] font-mono text-primary font-bold bg-primary/10 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-mono text-indigo-500 dark:text-indigo-400 font-bold bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
                         Step {currentStep + 1} of {STEPS.length}
                       </span>
                     )}
                   </div>
+                </div>
 
-                  {/* Message Stream */}
-                  <div ref={chatContainerRef} className="h-[250px] overflow-y-auto pr-1 flex flex-col gap-3 scrollbar-thin">
-                    <AnimatePresence initial={false}>
-                      {messages.map((m) => (
-                        <motion.div
-                          key={m.id}
-                          initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ duration: 0.3 }}
-                          className={`flex flex-col max-w-[80%] ${
-                            m.sender === "user" ? "self-end items-end" : "self-start items-start"
+                {/* Agent Settings Panel */}
+                <AnimatePresence>
+                  {showSettings && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden bg-slate-500/5 dark:bg-slate-950/20 border border-border/30 rounded-xl p-3.5 mb-3 select-none flex flex-col gap-3"
+                    >
+                      <div className="flex justify-between items-center text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-500 dark:text-indigo-400">
+                        <span>Agent Control System</span>
+                        <button 
+                          onClick={() => {
+                            resetChat();
+                            toast.success("Chat configuration reset!");
+                          }}
+                          className="flex items-center gap-1 text-[9px] hover:text-indigo-400 transition-colors uppercase font-mono font-bold bg-indigo-500/5 px-2 py-0.5 border border-indigo-500/10 rounded-md"
+                        >
+                          <RefreshCw size={9} /> Reset Chat
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Language Selector */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-semibold text-muted-foreground">Select Language</label>
+                          <div className="grid grid-cols-2 bg-slate-200/50 dark:bg-slate-900/60 p-0.5 rounded-lg border border-border/40">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChatLanguage("en");
+                                toast.success("Language switched to English");
+                              }}
+                              className={`text-[10px] font-bold py-1.5 rounded-md transition-all ${
+                                chatLanguage === "en"
+                                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/50 dark:border-white/5"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              English
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChatLanguage("hi");
+                                toast.success("भाषा बदलकर हिंग्लिश की गई");
+                              }}
+                              className={`text-[10px] font-bold py-1.5 rounded-md transition-all ${
+                                chatLanguage === "hi"
+                                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/50 dark:border-white/5"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              Hinglish
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Tone Selector */}
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-[10px] font-semibold text-muted-foreground">Select Vibe</label>
+                          <div className="grid grid-cols-2 bg-slate-200/50 dark:bg-slate-900/60 p-0.5 rounded-lg border border-border/40">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChatTone("witty");
+                                toast.success("Vibe changed to Playful!");
+                              }}
+                              className={`text-[10px] font-bold py-1.5 rounded-md transition-all ${
+                                chatTone === "witty"
+                                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/50 dark:border-white/5"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              Playful
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setChatTone("professional");
+                                toast.success("Vibe changed to Professional!");
+                              }}
+                              className={`text-[10px] font-bold py-1.5 rounded-md transition-all ${
+                                chatTone === "professional"
+                                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm border border-slate-200/50 dark:border-white/5"
+                                  : "text-muted-foreground hover:text-foreground"
+                              }`}
+                            >
+                              Professional
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Message Stream */}
+                <div 
+                  ref={chatContainerRef} 
+                  className="flex-grow overflow-y-auto pr-1 flex flex-col gap-4 scrollbar-thin p-4 rounded-xl bg-slate-500/5 dark:bg-slate-950/40 bg-[radial-gradient(#e2e8f0_1px,transparent_1px)] dark:bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] border border-border/20 shadow-inner"
+                >
+                  <AnimatePresence initial={false}>
+                    {messages.map((m) => (
+                      <motion.div
+                        key={m.id}
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{ duration: 0.3 }}
+                        className={`flex gap-2.5 max-w-[88%] ${
+                          m.sender === "user" ? "self-end flex-row-reverse" : "self-start"
+                        }`}
+                      >
+                        {/* Avatar */}
+                        <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center border shadow-sm ${
+                          m.sender === "user"
+                            ? "border-indigo-500/20 bg-indigo-500/5 text-indigo-500 dark:text-indigo-400"
+                            : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1"
+                        }`}>
+                          {m.sender === "user" ? (
+                            <User size={13} />
+                          ) : (
+                            <AICoreMini />
+                          )}
+                        </div>
+
+                        {/* Bubble */}
+                        <div
+                          className={`p-3 rounded-2xl text-xs sm:text-sm leading-relaxed ${
+                            m.sender === "user"
+                              ? "bg-gradient-to-r from-violet-600 to-indigo-600 dark:from-violet-500 dark:to-indigo-500 text-white shadow-md shadow-indigo-500/15 rounded-tr-none"
+                              : "bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/5 text-foreground shadow-sm rounded-tl-none"
                           }`}
                         >
-                          <div
-                            className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
-                              m.sender === "user"
-                                ? "bg-primary/20 text-foreground border border-primary/30 rounded-tr-none"
-                                : "bg-card/40 border border-border/50 text-foreground/90 rounded-tl-none"
-                            }`}
-                          >
-                            {m.text}
-                          </div>
-                        </motion.div>
-                      ))}
+                          {m.text}
+                        </div>
+                      </motion.div>
+                    ))}
 
-                      {isAgentTyping && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          className="flex gap-1.5 self-start bg-card/40 border border-border/50 rounded-2xl rounded-tl-none py-3.5 px-4 shadow-sm"
-                        >
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "0ms" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "150ms" }} />
-                          <span className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: "300ms" }} />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <div ref={chatEndRef} />
-                  </div>
+                    {isAgentTyping && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex gap-2.5 self-start items-center"
+                      >
+                        {/* Avatar */}
+                        <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-1 shadow-sm">
+                          <AICoreMini />
+                        </div>
+                        {/* Typing Animation */}
+                        <div className="flex gap-1.5 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-white/5 rounded-2xl rounded-tl-none py-3 px-4 shadow-sm">
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+                          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-bounce" style={{ animationDelay: "300ms" }} />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div ref={chatEndRef} />
                 </div>
 
                 {/* Form Controls / Inputs */}
-                <div className="mt-4 border-t border-border/50 pt-4">
+                <div className="mt-3">
                   {currentStep < STEPS.length ? (
-                    <form onSubmit={handleChatSubmit} className="space-y-2">
-                      <div className="flex gap-2">
-                        {STEPS[currentStep].type === "textarea" ? (
-                          <Textarea
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            placeholder={STEPS[currentStep].placeholder}
-                            required
-                            rows={2}
-                            className="bg-muted/30 border-border/50 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:border-primary/40 transition-colors text-sm"
-                          />
-                        ) : (
-                          <Input
-                            type={STEPS[currentStep].type}
-                            value={inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            placeholder={STEPS[currentStep].placeholder}
-                            required
-                            className="bg-muted/30 border-border/50 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:border-primary/40 transition-colors text-sm"
-                          />
-                        )}
-                        <Button type="submit" size="icon" className="h-11 w-11 shrink-0 rounded-xl">
+                    <form onSubmit={handleChatSubmit} className="space-y-1.5">
+                      <div className="flex gap-2 w-full relative">
+                        <div className="relative flex-grow">
+                          {STEPS[currentStep].type === "textarea" ? (
+                            <>
+                              <MessageSquare size={16} className="absolute left-3.5 top-4 text-muted-foreground/60" />
+                              <Textarea
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder={STEPS[currentStep].placeholder}
+                                required
+                                rows={2}
+                                className="pl-10 bg-white/50 dark:bg-slate-950/30 border-border/60 dark:border-white/10 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-sm"
+                              />
+                            </>
+                          ) : (
+                            <>
+                              {STEPS[currentStep].field === "name" && <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />}
+                              {STEPS[currentStep].field === "email" && <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />}
+                              {STEPS[currentStep].field === "phone" && <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />}
+                              <Input
+                                type={STEPS[currentStep].type}
+                                value={inputValue}
+                                onChange={(e) => setInputValue(e.target.value)}
+                                placeholder={STEPS[currentStep].placeholder}
+                                required
+                                className="pl-10 bg-white/50 dark:bg-slate-950/30 border-border/60 dark:border-white/10 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors text-sm"
+                              />
+                            </>
+                          )}
+                        </div>
+                        <Button type="submit" size="icon" className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all duration-300 hover:scale-[1.03]">
                           <Send size={15} />
                         </Button>
                       </div>
                       
                       {/* Character count for conversational textarea requirements */}
                       {STEPS[currentStep].field === "message" && (
-                        <div className="flex justify-between items-center text-[10px] text-muted-foreground font-mono px-1 pb-1">
+                        <div className="flex justify-between items-center text-[10px] text-muted-foreground font-mono px-1">
                           <span className={inputValue.trim().length < 100 ? "text-amber-500 animate-pulse font-semibold" : "text-emerald-400 font-bold"}>
                             {inputValue.trim().length < 100 
                               ? `Requires ${100 - inputValue.trim().length} more characters` 
@@ -397,120 +680,114 @@ const ContactSection = () => {
                     </form>
                   ) : (
                     /* Final step success buttons */
-                    <div className="flex flex-col items-center text-center p-3 animate-fade-in">
-                      <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3 border border-emerald-500/30">
-                        <Check size={20} className="animate-pulse" />
+                    <div className="flex flex-col items-center text-center p-2 animate-fade-in">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-2 border border-emerald-500/30">
+                        <Check size={18} className="animate-pulse" />
                       </div>
-                      <h4 className="font-heading font-semibold text-foreground text-sm mb-3">Onboarding Complete</h4>
+                      <h4 className="font-heading font-semibold text-foreground text-sm mb-2">Onboarding Complete</h4>
                       <Button onClick={resetChat} variant="outline" size="sm" className="rounded-xl text-xs gap-1.5 border-border/60 hover:bg-muted/50">
                         <RefreshCw size={12} /> Restart Form
                       </Button>
                     </div>
                   )}
-
-                  {/* Mode switcher */}
-                  <div 
-                    onClick={() => setIsConversational(false)}
-                    className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors flex items-center gap-1 mt-3.5 mx-auto justify-center cursor-pointer select-none font-mono underline"
-                  >
-                    <MessageSquare size={10} /> Switch to Classic Form
-                  </div>
                 </div>
               </div>
             ) : (
               /* Classic Form UI */
-              <form onSubmit={handleClassicSubmit} className="p-8 md:p-10 space-y-5 h-full flex flex-col justify-between">
-                <div>
-                  <h3 className="font-heading font-semibold text-foreground text-lg mb-4 text-gradient-primary">Send us a message</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <Input
-                        placeholder="Your Name"
-                        value={form.name}
-                        onChange={(e) => {
-                          setForm({ ...form, name: e.target.value });
-                          if (classicErrors.name) setClassicErrors({ ...classicErrors, name: "" });
-                        }}
-                        required
-                        className={`bg-muted/30 h-12 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:border-primary/40 transition-colors ${
-                          classicErrors.name ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                        }`}
-                      />
-                      {classicErrors.name && (
-                        <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.name}</p>
-                      )}
-                    </div>
+              <form onSubmit={handleClassicSubmit} className="px-6 pb-6 flex flex-col flex-grow justify-between overflow-y-auto scrollbar-none space-y-4">
+                <div className="space-y-3">
+                  <div className="relative">
+                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />
+                    <Input
+                      placeholder="Your Name"
+                      value={form.name}
+                      onChange={(e) => {
+                        setForm({ ...form, name: e.target.value });
+                        if (classicErrors.name) setClassicErrors({ ...classicErrors, name: "" });
+                      }}
+                      required
+                      className={`pl-10 bg-white/50 dark:bg-slate-950/30 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
+                        classicErrors.name ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
+                      }`}
+                    />
+                    {classicErrors.name && (
+                      <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.name}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <Input
-                        type="email"
-                        placeholder="Email Address"
-                        value={form.email}
-                        onChange={(e) => {
-                          setForm({ ...form, email: e.target.value });
-                          if (classicErrors.email) setClassicErrors({ ...classicErrors, email: "" });
-                        }}
-                        required
-                        className={`bg-muted/30 h-12 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:border-primary/40 transition-colors ${
-                          classicErrors.email ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                        }`}
-                      />
-                      {classicErrors.email && (
-                        <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.email}</p>
-                      )}
-                    </div>
+                  <div className="relative">
+                    <Mail size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />
+                    <Input
+                      type="email"
+                      placeholder="Email Address"
+                      value={form.email}
+                      onChange={(e) => {
+                        setForm({ ...form, email: e.target.value });
+                        if (classicErrors.email) setClassicErrors({ ...classicErrors, email: "" });
+                      }}
+                      required
+                      className={`pl-10 bg-white/50 dark:bg-slate-950/30 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
+                        classicErrors.email ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
+                      }`}
+                    />
+                    {classicErrors.email && (
+                      <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.email}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <Input
-                        placeholder="Phone Number (e.g., +91 70241 28029)"
-                        value={form.phone}
-                        onChange={(e) => {
-                          setForm({ ...form, phone: e.target.value });
-                          if (classicErrors.phone) setClassicErrors({ ...classicErrors, phone: "" });
-                        }}
-                        required
-                        className={`bg-muted/30 h-12 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:border-primary/40 transition-colors ${
-                          classicErrors.phone ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                        }`}
-                      />
-                      {classicErrors.phone && (
-                        <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.phone}</p>
-                      )}
-                    </div>
+                  <div className="relative">
+                    <Phone size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/60 z-10" />
+                    <Input
+                      placeholder="Phone Number (e.g., +91 70241 28029)"
+                      value={form.phone}
+                      onChange={(e) => {
+                        setForm({ ...form, phone: e.target.value });
+                        if (classicErrors.phone) setClassicErrors({ ...classicErrors, phone: "" });
+                      }}
+                      required
+                      className={`pl-10 bg-white/50 dark:bg-slate-950/30 h-11 text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
+                        classicErrors.phone ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
+                      }`}
+                    />
+                    {classicErrors.phone && (
+                      <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.phone}</p>
+                    )}
+                  </div>
 
-                    <div>
-                      <Textarea
-                        placeholder="Describe your project requirements, goals, and target timeline in detail..."
-                        value={form.message}
-                        onChange={(e) => {
-                          setForm({ ...form, message: e.target.value });
-                          if (classicErrors.message) setClassicErrors({ ...classicErrors, message: "" });
-                        }}
-                        required
-                        rows={4}
-                        className={`bg-muted/30 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:border-primary/40 transition-colors ${
-                          classicErrors.message ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
-                        }`}
-                      />
-                      {/* Character counter */}
-                      <div className="flex justify-between items-center text-[10px] mt-1 font-mono px-1">
-                        <span className={form.message.trim().length < 100 ? "text-amber-400 animate-pulse font-semibold" : "text-emerald-400 font-bold"}>
-                          {form.message.trim().length < 100 
-                            ? `Min 100 characters required (${100 - form.message.trim().length} more)` 
-                            : "Requirement detail level: Excellent ✓"}
-                        </span>
-                        <span className={form.message.trim().length < 100 ? "text-muted-foreground/60" : "text-emerald-400"}>
-                          {form.message.trim().length}/100
-                        </span>
-                      </div>
-                      {classicErrors.message && (
-                        <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.message}</p>
-                      )}
+                  <div className="relative">
+                    <MessageSquare size={16} className="absolute left-3.5 top-4 text-muted-foreground/60 z-10" />
+                    <Textarea
+                      placeholder="Describe your project requirements, goals, and target timeline in detail..."
+                      value={form.message}
+                      onChange={(e) => {
+                        setForm({ ...form, message: e.target.value });
+                        if (classicErrors.message) setClassicErrors({ ...classicErrors, message: "" });
+                      }}
+                      required
+                      rows={3}
+                      className={`pl-10 pt-2.5 bg-white/50 dark:bg-slate-950/30 resize-none text-foreground placeholder:text-muted-foreground/60 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-colors ${
+                        classicErrors.message ? "border-rose-500/60 focus:border-rose-500" : "border-border/50"
+                      }`}
+                    />
+                    {/* Character counter */}
+                    <div className="flex justify-between items-center text-[10px] mt-1 font-mono px-1">
+                      <span className={form.message.trim().length < 100 ? "text-amber-400 animate-pulse font-semibold" : "text-emerald-400 font-bold"}>
+                        {form.message.trim().length < 100 
+                          ? `Min 100 chars (${100 - form.message.trim().length} more)` 
+                          : "Requirements: Complete ✓"}
+                      </span>
+                      <span className={form.message.trim().length < 100 ? "text-muted-foreground/60" : "text-emerald-400"}>
+                        {form.message.trim().length}/100
+                      </span>
                     </div>
+                    {classicErrors.message && (
+                      <p className="text-[10px] text-rose-400 font-mono mt-1 flex items-center gap-1"><AlertCircle size={10} />{classicErrors.message}</p>
+                    )}
                   </div>
                 </div>
-                <div className="mt-6">
-                  <Button type="submit" className="w-full rounded-xl" size="lg" disabled={isSubmitting}>
+
+                <div>
+                  <Button type="submit" className="w-full h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white shadow-md shadow-indigo-500/20 transition-all duration-300 hover:scale-[1.01]" size="lg" disabled={isSubmitting}>
                     {isSubmitting ? (
                       <span className="flex items-center gap-2">
                         <span className="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
@@ -522,17 +799,6 @@ const ContactSection = () => {
                       </>
                     )}
                   </Button>
-                  
-                  {/* Mode switcher */}
-                  <div 
-                    onClick={() => {
-                      setIsConversational(true);
-                      resetChat();
-                    }}
-                    className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors flex items-center gap-1 mt-4 mx-auto justify-center cursor-pointer select-none font-mono underline"
-                  >
-                    <MessageSquare size={10} /> Switch to Conversational Onboarding Bot
-                  </div>
                 </div>
               </form>
             )}
