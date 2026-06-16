@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -87,7 +86,6 @@ const Admin = () => {
     return (
       <div className="min-h-screen bg-background relative flex flex-col justify-between overflow-hidden">
         <SEO noindex={true} title="Admin Portal - Sign In" />
-        <Navbar />
         <GlowOrb className="w-[500px] h-[500px] top-10 -left-60" color="primary" />
         <GlowOrb className="w-[400px] h-[400px] bottom-10 -right-40" color="secondary" />
 
@@ -166,7 +164,6 @@ const Admin = () => {
     return (
       <div className="min-h-screen bg-background relative flex flex-col justify-between overflow-hidden">
         <SEO noindex={true} title="Admin Portal - Access Denied" />
-        <Navbar />
         <GlowOrb className="w-[500px] h-[500px] top-10 -left-60" color="destructive" />
 
         <div className="flex-grow flex items-center justify-center px-4 pt-32 pb-20 relative z-10">
@@ -207,7 +204,6 @@ const Admin = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEO noindex={true} title="Admin Portal" />
-      <Navbar />
       
       <main className="pt-32 pb-20 container mx-auto px-4 relative">
         <GlowOrb className="w-[500px] h-[500px] top-0 -left-60" color="primary" />

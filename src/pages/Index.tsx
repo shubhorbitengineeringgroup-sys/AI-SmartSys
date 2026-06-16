@@ -1,11 +1,9 @@
 import { useEffect, lazy, Suspense } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import { useLocation } from "react-router-dom";
-import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/HeroSection";
 import Footer from "@/components/Footer";
 import NeuralCanvas from "@/components/NeuralCanvas";
-import { AIChatbot } from "@/components/AIChatbot";
 import SEO from "@/components/SEO";
 
 const AboutSection = lazy(() => import("@/components/AboutSection"));
@@ -149,7 +147,6 @@ const Index = ({ scrollTo }: IndexProps) => {
       {/* Interactive Neural background */}
       <NeuralCanvas />
 
-      <Navbar />
       <div id="home"><HeroSection /></div>
 
       <Suspense fallback={<Fallback />}>
@@ -165,7 +162,6 @@ const Index = ({ scrollTo }: IndexProps) => {
       </Suspense>
 
       <Footer />
-      <AIChatbot />
     </div>
   );
 };

@@ -1,5 +1,4 @@
 import { useAuth } from "@/context/AuthContext";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Brain, FileText, Image as ImageIcon, Bot, LogOut, Layout, ArrowLeft } from "lucide-react";
@@ -44,7 +43,6 @@ const Dashboard = () => {
     return (
         <div className="min-h-screen bg-background">
             <SEO noindex={true} title="User Dashboard" />
-            <Navbar />
 
             <main className="pt-32 pb-20 container mx-auto px-4 relative">
                 <GlowOrb className="w-[500px] h-[500px] top-0 -left-60" color="primary" />

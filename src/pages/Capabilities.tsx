@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/SEO";
 import NeuralCanvas from "@/components/NeuralCanvas";
@@ -232,7 +231,6 @@ const Capabilities = () => {
       </div>
 
       <div className="relative z-10">
-        <Navbar />
 
         {/* HERO SECTION */}
         <section className="relative pt-36 pb-20 overflow-hidden">

@@ -170,7 +170,7 @@ const Navbar = () => {
 
   return (
     <div
-      className={`fixed left-0 right-0 z-50 flex justify-center px-4 transition-all duration-500 ${
+      className={`fixed left-0 right-0 z-[100] flex justify-center px-4 transition-all duration-500 pointer-events-auto ${
         scrolled ? "top-3 sm:top-5" : "top-0 sm:top-2"
       }`}
     >

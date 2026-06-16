@@ -9,6 +9,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import { ThemeProvider } from "./context/ThemeContext";
 import Preloader from "./components/Preloader";
 import { AnimatePresence, motion } from "framer-motion";
+import Navbar from "./components/Navbar";
+import { AIChatbot } from "./components/AIChatbot";
 
 const Index = lazy(() => import("./pages/Index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -98,7 +100,9 @@ const App = () => {
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               {/* Scroll to top on every hard navigate */}
               <ScrollToTop />
+              <Navbar />
               <AnimatedRoutes />
+              <AIChatbot />
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>

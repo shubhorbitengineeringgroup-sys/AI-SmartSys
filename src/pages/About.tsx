@@ -1,5 +1,4 @@
 import { useEffect, useState, useRef } from "react";
-import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { CheckCircle2, Target, Eye, Cpu, Cloud, Code, Sparkles, Activity, Layers } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,7 +48,7 @@ const Counter = ({ value, suffix = "" }: { value: number; suffix?: string }) => 
 };
 
 interface TiltCardProps {
-  icon: React.ComponentType<{ size?: number; className?: string }>;
+  icon: React.ComponentType<any>;
   title: string;
   text: string;
   colorClass: string;
@@ -193,7 +192,6 @@ const About = () => {
       <div className="fixed inset-0 pointer-events-none z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
 
       <div className="relative z-10">
-        <Navbar />
         
         {/* Hero Section */}
         <section className="pt-32 pb-20">
