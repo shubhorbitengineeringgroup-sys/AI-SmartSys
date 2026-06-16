@@ -34,9 +34,9 @@ const Footer = () => {
       <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/10 blur-[100px] rounded-full" />
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-16">
           {/* Brand */}
-          <div className="lg:col-span-2">
+          <div className="md:col-span-1 lg:col-span-4">
             <div className="flex flex-col items-start gap-4 mb-8">
               <img 
                 src={logoSrc} 
@@ -51,7 +51,7 @@ const Footer = () => {
         </div>
 
         {/* Quick Links */}
-        <div>
+        <div className="md:col-span-1 lg:col-span-2">
           <h4 className="font-heading font-semibold mb-6 text-sm uppercase tracking-widest text-foreground">Explore</h4>
           <ul className="space-y-4">
             {quickLinks.map((link) => (
@@ -66,7 +66,7 @@ const Footer = () => {
         </div>
 
         {/* Services */}
-        <div>
+        <div className="md:col-span-1 lg:col-span-3">
           <h4 className="font-heading font-semibold mb-6 text-sm uppercase tracking-widest text-foreground">Capabilities</h4>
           <ul className="space-y-4">
             {serviceLinks.map((link) => (
@@ -80,7 +80,7 @@ const Footer = () => {
         </div>
 
         {/* Contact info */}
-        <div>
+        <div className="md:col-span-1 lg:col-span-3">
           <h4 className="font-heading font-semibold mb-6 text-sm uppercase tracking-widest text-foreground">Contact</h4>
           <div className="space-y-4">
             <a href="tel:+917024128029" className="flex items-center gap-3 text-muted-foreground hover:text-accent text-sm transition-colors">

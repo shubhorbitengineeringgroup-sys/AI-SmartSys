@@ -213,7 +213,7 @@ const Capabilities = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground relative overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground relative overflow-x-hidden">
       <SEO 
         title="Enterprise Capabilities | AI-SmartSys Solutions" 
         description="Explore AI SmartSyS's capabilities: AI development, web development, custom automation, generative AI chatbots, data analytics, and mobile applications."
@@ -303,8 +303,8 @@ const Capabilities = () => {
                     
                     {/* Content Block (lg:col-span-6) */}
                     <motion.div
-                      initial={{ opacity: 0, x: isEven ? -40 : 40 }}
-                      whileInView={{ opacity: 1, x: 0 }}
+                      initial={{ opacity: 0, y: 30 }}
+                      whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-100px" }}
                       transition={{ duration: 0.6 }}
                       className={`lg:col-span-6 flex flex-col gap-6 ${!isEven ? "lg:order-2" : ""}`}
@@ -383,44 +383,202 @@ const Capabilities = () => {
                         />
                       </div>
 
-                      {/* Floating bounding brackets */}
-                      <div className="absolute w-[85%] h-[80%] border border-dashed border-primary/5 rounded-[2rem] pointer-events-none z-10 flex items-center justify-center">
-                        <span className="absolute top-0 left-0 w-6 h-6 border-t border-l rounded-tl-xl transition-colors duration-1000" style={{ borderColor: cap.glowColor }} />
-                        <span className="absolute top-0 right-0 w-6 h-6 border-t border-r rounded-tr-xl transition-colors duration-1000" style={{ borderColor: cap.glowColor }} />
-                        <span className="absolute bottom-0 left-0 w-6 h-6 border-b border-l rounded-bl-xl transition-colors duration-1000" style={{ borderColor: cap.glowColor }} />
-                        <span className="absolute bottom-0 right-0 w-6 h-6 border-b border-r rounded-br-xl transition-colors duration-1000" style={{ borderColor: cap.glowColor }} />
-                      </div>
+                      {/* RENDERING DYNAMIC CYBER SHAPE FRAMES & DISTINCT ANIMATIONS BASED ON ID */}
+                      {cap.id === "ai-development" && (
+                        <div className="w-full flex justify-center relative">
+                          {/* Octagonal Frame Brackets */}
+                          <div className="absolute w-[88%] h-[104%] border border-dashed border-cyan-500/20 rounded-[2rem] pointer-events-none z-10 flex items-center justify-center scale-105">
+                            <span className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-cyan-400 rounded-tl-xl" />
+                            <span className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-cyan-400 rounded-tr-xl" />
+                            <span className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-cyan-400 rounded-bl-xl" />
+                            <span className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-cyan-400 rounded-br-xl" />
+                          </div>
+                          <motion.div
+                            animate={{ y: [0, -12, 0], rotate: [0, 1.5, -1.5, 0] }}
+                            whileHover={{ scale: 1.05, rotateY: 8, rotateX: -4 }}
+                            transition={{
+                              y: { duration: 5, repeat: Infinity, ease: "easeInOut" },
+                              rotate: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                              scale: { type: "spring", stiffness: 200, damping: 15 }
+                            }}
+                            className="relative z-20 w-full flex justify-center"
+                          >
+                            <div className="w-[85%] sm:w-[75%] md:w-[70%] aspect-square shape-octagonal bg-slate-950/40 p-1.5 border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.2)] backdrop-blur-[2px]">
+                              <img 
+                                src={cap.image} 
+                                alt={cap.title}
+                                className="w-full h-full object-cover shape-octagonal"
+                              />
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
 
-                      {/* Image element with smooth levitating animation */}
-                      <motion.div
-                        animate={{ y: [0, -10, 0] }}
-                        whileHover={{ scale: 1.05, rotateY: isEven ? 8 : -8, rotateX: -4 }}
-                        transition={{
-                          y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
-                          scale: { type: "spring", stiffness: 200, damping: 15 },
-                          rotateY: { type: "spring", stiffness: 200, damping: 15 },
-                          rotateX: { type: "spring", stiffness: 200, damping: 15 }
-                        }}
-                        className="relative z-20 w-full flex justify-center"
-                      >
-                        <img 
-                          src={cap.image} 
-                          alt={cap.title}
-                          className="w-[85%] sm:w-[75%] md:w-[70%] max-h-[350px] object-contain rounded-2xl drop-shadow-[0_20px_40px_rgba(0,0,0,0.5)] border border-white/5 bg-slate-950/20 backdrop-blur-[2px]"
+                      {cap.id === "web-development" && (
+                        <div className="w-full flex justify-center relative">
+                          <motion.div
+                            animate={{ y: [0, -8, 0], x: [0, 5, -5, 0] }}
+                            whileHover={{ scale: 1.05, rotateY: -8, rotateX: -4 }}
+                            transition={{
+                              y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                              x: { duration: 7, repeat: Infinity, ease: "easeInOut" },
+                              scale: { type: "spring", stiffness: 200, damping: 15 }
+                            }}
+                            className="relative z-20 w-full flex justify-center"
+                          >
+                            {/* Web Browser Frame */}
+                            <div className="w-[85%] sm:w-[75%] md:w-[72%] rounded-2xl border border-purple-500/30 bg-slate-950/40 shadow-[0_20px_50px_rgba(139,92,246,0.25)] overflow-hidden backdrop-blur-[2px]">
+                              {/* Browser Title Bar */}
+                              <div className="bg-slate-900/80 px-4 py-2.5 border-b border-purple-500/20 flex items-center gap-3">
+                                <div className="flex gap-1.5 shrink-0">
+                                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+                                </div>
+                                <div className="bg-slate-950/60 rounded-lg text-[9px] font-mono text-purple-400/70 py-1 px-3 w-[65%] text-left truncate border border-purple-500/10">
+                                  https://aismartsys.in/app
+                                </div>
+                              </div>
+                              {/* Browser Content (Image) */}
+                              <div className="p-1.5 bg-slate-950/20">
+                                <img 
+                                  src={cap.image} 
+                                  alt={cap.title}
+                                  className="w-full h-auto object-contain rounded-xl"
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {cap.id === "automation" && (
+                        <div className="w-full flex justify-center relative">
+                          <motion.div
+                            animate={{ scale: [1, 1.03, 1], rotate: [0, 1.2, -1.2, 0] }}
+                            whileHover={{ scale: 1.05, rotateY: 8, rotateX: -4 }}
+                            transition={{
+                              scale: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
+                              rotate: { duration: 6.5, repeat: Infinity, ease: "easeInOut" },
+                              rotateY: { type: "spring", stiffness: 200, damping: 15 }
+                            }}
+                            className="relative z-20 w-full flex justify-center"
+                          >
+                            <div className="w-[85%] sm:w-[75%] md:w-[70%] shape-chamfered bg-slate-950/40 p-2 border border-amber-500/35 shadow-[0_0_30px_rgba(245,158,11,0.15)] backdrop-blur-[2px] relative overflow-hidden">
+                              <img 
+                                src={cap.image} 
+                                alt={cap.title}
+                                className="w-full h-full object-cover shape-chamfered"
+                              />
+                              {/* Telemetry label overlay */}
+                              <div className="absolute bottom-3 left-3 bg-slate-950/90 border border-amber-500/25 px-2 py-0.5 rounded text-[8px] font-mono text-amber-400 select-none tracking-widest uppercase animate-pulse">
+                                SYS_READY: TELEM_ON
+                              </div>
+                              {/* Industrial corner crosshairs */}
+                              <span className="absolute top-2 left-2 text-[10px] text-amber-500/60 font-mono font-bold select-none">+</span>
+                              <span className="absolute top-2 right-2 text-[10px] text-amber-500/60 font-mono font-bold select-none">+</span>
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {cap.id === "chatbot-development" && (
+                        <div className="w-full flex justify-center relative">
+                          <motion.div
+                            animate={{ x: [0, 7, 0], y: [0, -9, 0] }}
+                            whileHover={{ scale: 1.06, rotateY: -8 }}
+                            transition={{
+                              x: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+                              y: { duration: 4.5, repeat: Infinity, ease: "easeInOut" },
+                              scale: { type: "spring", stiffness: 250, damping: 12 }
+                            }}
+                            className="relative z-20 w-full flex justify-center"
+                          >
+                            {/* Message Bubble frame container */}
+                            <div className="w-[85%] sm:w-[75%] md:w-[70%] shape-bubble bg-slate-950/40 p-2 border-2 border-pink-500/30 shadow-[0_15px_40px_rgba(236,72,153,0.2)] backdrop-blur-[2px] relative">
+                              <img 
+                                src={cap.image} 
+                                alt={cap.title}
+                                className="w-full h-full object-cover shape-bubble"
+                              />
+                              <div className="absolute -bottom-1 -right-1 bg-pink-500 text-white rounded-full p-1 shadow-lg border border-white/10 flex items-center justify-center">
+                                <MessageSquare size={12} />
+                              </div>
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {cap.id === "data-analytics" && (
+                        <div className="w-full flex justify-center relative">
+                          <motion.div
+                            animate={{ y: [0, -12, 0] }}
+                            whileHover={{ scale: 1.05, rotateY: 8 }}
+                            transition={{
+                              y: { duration: 5.2, repeat: Infinity, ease: "easeInOut" },
+                              scale: { type: "spring", stiffness: 200, damping: 15 }
+                            }}
+                            className="relative z-20 w-full flex justify-center"
+                          >
+                            {/* Dashboard grid analyzer screen */}
+                            <div className="w-[85%] sm:w-[75%] md:w-[70%] rounded-2xl bg-slate-950/40 p-2 border border-emerald-500/35 shadow-[0_0_35px_rgba(16,185,129,0.2)] backdrop-blur-[2px] relative overflow-hidden">
+                              {/* Grid lines pattern overlay */}
+                              <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(16,185,129,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(16,185,129,0.06)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none z-10" />
+                              <img 
+                                src={cap.image} 
+                                alt={cap.title}
+                                className="w-full h-full object-cover rounded-xl"
+                              />
+                              {/* Scanning Laser beam */}
+                              <div className="w-full h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent absolute left-0 z-30 animate-scan-laser shadow-[0_0_8px_#10b981]" />
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {cap.id === "mobile-apps" && (
+                        <div className="w-full flex justify-center relative">
+                          <motion.div
+                            animate={{ y: [0, -15, 0] }}
+                            whileHover={{ scale: 1.05, rotateY: -8, rotateX: 3 }}
+                            transition={{
+                              y: { duration: 4.8, repeat: Infinity, ease: "easeInOut" },
+                              scale: { type: "spring", stiffness: 200, damping: 15 }
+                            }}
+                            className="relative z-20 w-full flex justify-center"
+                          >
+                            {/* Smartphone Device Mockup Frame */}
+                            <div className="w-[80%] sm:w-[70%] md:w-[62%] max-w-[270px] aspect-[9/18.5] border-[6px] border-slate-950 bg-slate-950/60 rounded-[2.5rem] relative flex items-center justify-center shadow-2xl p-1 overflow-hidden backdrop-blur-md ring-2 ring-blue-500/30">
+                              {/* Dynamic Island notch */}
+                              <div className="w-20 h-4 bg-slate-950 rounded-full absolute top-2.5 left-1/2 -translate-x-1/2 z-30 border border-white/5" />
+                              {/* Swipe home indicator */}
+                              <div className="w-20 h-1 bg-slate-700/60 rounded-full absolute bottom-1.5 left-1/2 -translate-x-1/2 z-30" />
+                              {/* Screen Content (Image) */}
+                              <div className="w-full h-full overflow-hidden rounded-[2rem] bg-slate-950">
+                                <img 
+                                  src={cap.image} 
+                                  alt={cap.title}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            </div>
+                          </motion.div>
+                        </div>
+                      )}
+
+                      {/* Tech Scanner light overlay beam (for fallback or general accent) */}
+                      {!["data-analytics", "web-development", "mobile-apps"].includes(cap.id) && (
+                        <motion.div 
+                          className="w-[60%] h-[150px] bg-gradient-to-t absolute bottom-[10px] left-[20%] rounded-t-full blur-3xl pointer-events-none z-10"
+                          style={{
+                            background: `linear-gradient(to top, ${cap.glowColor.replace("0.25", "0.2")}, transparent)`
+                          }}
+                          animate={{
+                            opacity: [0.1, 0.35, 0.1]
+                          }}
+                          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
                         />
-                      </motion.div>
-
-                      {/* Tech Scanner light overlay beam */}
-                      <motion.div 
-                        className="w-[60%] h-[150px] bg-gradient-to-t absolute bottom-[10px] left-[20%] rounded-t-full blur-3xl pointer-events-none z-10"
-                        style={{
-                          background: `linear-gradient(to top, ${cap.glowColor.replace("0.25", "0.15")}, transparent)`
-                        }}
-                        animate={{
-                          opacity: [0.1, 0.35, 0.1]
-                        }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                      />
+                      )}
                     </div>
 
                   </div>
