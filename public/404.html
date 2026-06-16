@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>AI SmartSyS</title>
+    <script type="text/javascript">
+      // GitHub Pages SPA redirect trick.
+      // When GitHub returns a 404 for unknown paths (like /admin, /dashboard),
+      // this script converts the path into a query parameter and redirects to /,
+      // where the React app picks it up and restores the correct route.
+      var l = window.location;
+      var segmentCount = 0; // 0 = root deployment (no repo subfolder)
+      l.replace(
+        l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+        l.pathname.split('/').slice(0, 1 + segmentCount).join('/') + '/?p=/' +
+        l.pathname.slice(1).split('/').slice(segmentCount).join('/').replace(/&/g, '~and~') +
+        (l.search ? '&q=' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+        l.hash
+      );
+    </script>
+  </head>
+  <body>
+    Redirecting...
+  </body>
+</html>
