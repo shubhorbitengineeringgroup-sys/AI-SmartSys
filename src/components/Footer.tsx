@@ -4,14 +4,14 @@ import aiLogoDark from "@/assets/ai-smartsys-logo-dark.png";
 import { useTheme } from "@/context/ThemeContext";
 
 const quickLinks = [
-  { name: "Home", href: "/#home" },
-  { name: "About", href: "/#about" },
-  { name: "Services", href: "/#services" },
-  { name: "Products", href: "/#products" },
-  { name: "Process", href: "/#process" },
-  { name: "Portfolio", href: "/#portfolio" },
-  { name: "FAQ", href: "/#faq" },
-  { name: "Contact", href: "/#contact" },
+  { name: "Home",      href: "/" },
+  { name: "About",     href: "/about" },
+  { name: "Services",  href: "/services" },
+  { name: "Products",  href: "/products" },
+  { name: "Process",   href: "/process" },
+  { name: "Portfolio", href: "/portfolio" },
+  { name: "FAQ",       href: "/faq" },
+  { name: "Contact",   href: "/contact" },
 ];
 const serviceLinks = [
   { name: "AI Development", ref: "customised-software" },

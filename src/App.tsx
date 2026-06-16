@@ -35,7 +35,7 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            
+
             {/* Startup Preloader Animation */}
             <AnimatePresence mode="wait">
               {showLoader && (
@@ -46,10 +46,26 @@ const App = () => {
             <BrowserRouter basename={import.meta.env.BASE_URL}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
+                  {/* Main pages */}
                   <Route path="/" element={<Index />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/admin" element={<Admin />} />
+
+                  {/*
+                    Section routes — renders the homepage Index and auto-scrolls
+                    to the target section. Enables clean SEO-friendly URLs like:
+                    aismartsys.in/faq, aismartsys.in/services, etc.
+                    GitHub Pages 404.html redirect trick makes these work on direct access.
+                  */}
+                  <Route path="/services" element={<Index scrollTo="services" />} />
+                  <Route path="/products" element={<Index scrollTo="products" />} />
+                  <Route path="/process" element={<Index scrollTo="process" />} />
+                  <Route path="/portfolio" element={<Index scrollTo="portfolio" />} />
+                  <Route path="/faq" element={<Index scrollTo="faq" />} />
+                  <Route path="/contact" element={<Index scrollTo="contact" />} />
+
+                  {/* 404 fallback */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
