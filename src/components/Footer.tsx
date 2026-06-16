@@ -1,4 +1,4 @@
-import { Github, Linkedin, Twitter, Instagram } from "lucide-react";
+
 import aiLogo from "@/assets/ai-smartsys-logo.png";
 import aiLogoDark from "@/assets/ai-smartsys-logo-dark.png";
 import { useTheme } from "@/context/ThemeContext";
@@ -47,13 +47,7 @@ const Footer = () => {
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               Empowering businesses with intelligent AI solutions for a smarter, more connected future. We bridge the gap between human intelligence and machine efficiency.
             </p>
-          <div className="flex gap-4">
-            {[Twitter, Linkedin, Github, Instagram].map((Icon, i) => (
-              <a key={i} href="#" className="w-10 h-10 rounded-xl glass border border-border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent/20 transition-all duration-300 hover:scale-110">
-                <Icon size={18} />
-              </a>
-            ))}
-          </div>
+
         </div>
 
         {/* Quick Links */}
