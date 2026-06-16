@@ -20,21 +20,28 @@ const ScrollToTop = () => {
     }, []);
 
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            ([entry]) => {
-                setIsNearContact(entry.isIntersecting);
-            },
-            { threshold: 0.1 }
-        );
+        let observer: IntersectionObserver | null = null;
+        let contactElement: HTMLElement | null = null;
 
-        const contactElement = document.getElementById("contact");
-        if (contactElement) {
-            observer.observe(contactElement);
-        }
+        const checkInterval = setInterval(() => {
+            contactElement = document.getElementById("contact");
+            if (contactElement) {
+                observer = new IntersectionObserver(
+                    ([entry]) => {
+                        setIsNearContact(entry.isIntersecting);
+                    },
+                    { threshold: 0.1 }
+                );
+                observer.observe(contactElement);
+                clearInterval(checkInterval);
+            }
+        }, 500);
 
         return () => {
-            if (contactElement) {
+            clearInterval(checkInterval);
+            if (observer && contactElement) {
                 observer.unobserve(contactElement);
+                observer.disconnect();
             }
         };
     }, []);

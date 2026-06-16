@@ -9,19 +9,22 @@ import AuthModal from "./AuthModal";
 import { useTheme } from "@/context/ThemeContext";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Section IDs that live on the homepage (Index.tsx)
-const SECTION_IDS = ["about", "services", "products", "process", "portfolio", "faq", "contact"];
+// Section IDs that live on the homepage (Index.tsx) — dedicated pages are NOT listed here
+const SECTION_IDS = ["services", "products", "process", "portfolio", "faq", "contact"];
+
+// Routes that are dedicated standalone pages (NOT the homepage)
+const DEDICATED_PAGES = ["/about", "/capabilities", "/admin", "/dashboard"];
 
 // Clean URL nav links — no hash (#) needed
 const navLinks = [
-  { label: "Home",      href: "/" },
-  { label: "About",     href: "/about" },
-  { label: "Services",  href: "/services" },
-  { label: "Products",  href: "/products" },
-  { label: "Process",   href: "/process" },
-  { label: "Portfolio", href: "/portfolio" },
-  { label: "FAQ",       href: "/faq" },
-  { label: "Contact",   href: "/contact" },
+  { label: "Home",          href: "/" },
+  { label: "About",         href: "/about" },
+  { label: "Capabilities",  href: "/capabilities" },
+  { label: "Products",      href: "/products" },
+  { label: "Process",       href: "/process" },
+  { label: "Portfolio",     href: "/portfolio" },
+  { label: "FAQ",           href: "/faq" },
+  { label: "Contact",       href: "/contact" },
 ];
 
 const Navbar = () => {
@@ -36,10 +39,13 @@ const Navbar = () => {
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
   const logoSrc = theme === "dark" ? aiLogoDark : aiLogo;
 
+  // True only when the user is on the homepage or a section sub-route (e.g. /faq)
+  // Explicitly excludes dedicated pages like /about and /capabilities
   const isOnHomepage =
-    location.pathname === "/" ||
-    location.pathname === "/index.html" ||
-    SECTION_IDS.includes(location.pathname.slice(1));
+    !DEDICATED_PAGES.includes(location.pathname) &&
+    (location.pathname === "/" ||
+     location.pathname === "/index.html" ||
+     SECTION_IDS.includes(location.pathname.slice(1)));
 
   // Track which section is in view (only on homepage-family routes)
   useEffect(() => {
@@ -109,13 +115,15 @@ const Navbar = () => {
         window.history.pushState(null, "", "/");
         setActiveSection("home");
       } else {
+        // From /about, /capabilities, /admin — always navigate to homepage
         navigate("/");
       }
       return;
     }
 
-    if (href === "/about") {
-      navigate("/about");
+    // Dedicated standalone pages — always navigate directly
+    if (DEDICATED_PAGES.includes(href)) {
+      navigate(href);
       return;
     }
 
@@ -124,8 +132,8 @@ const Navbar = () => {
     if (SECTION_IDS.includes(pathSection)) {
       if (isOnHomepage) {
         // Already on homepage — smooth scroll without leaving the page
-        const scrolled = scrollToSection(pathSection);
-        if (scrolled) {
+        const didScroll = scrollToSection(pathSection);
+        if (didScroll) {
           window.history.pushState(null, "", href);
           setActiveSection(pathSection);
         } else {
@@ -133,7 +141,7 @@ const Navbar = () => {
           navigate(href);
         }
       } else {
-        // Navigate from another page (About, Admin) — React Router loads Index with scrollTo
+        // Navigate from a dedicated page — React Router loads Index with scrollTo
         navigate(href);
       }
       return;
@@ -148,12 +156,13 @@ const Navbar = () => {
       // Home is active when on homepage and scrolled to top (home section)
       return isOnHomepage && activeSection === "home";
     }
-    if (href === "/about") {
-      return location.pathname === "/about";
+    // Dedicated pages: exact path match
+    if (DEDICATED_PAGES.includes(href)) {
+      return location.pathname === href;
     }
+    // Section routes: active if navigated to section URL OR scrolled to that section on homepage
     const pathSection = href.slice(1);
     if (SECTION_IDS.includes(pathSection)) {
-      // Active if on that section's route OR if on homepage and scrolled to that section
       return location.pathname === href || (isOnHomepage && activeSection === pathSection);
     }
     return false;

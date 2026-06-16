@@ -395,6 +395,7 @@ export const AIChatbot = () => {
   const [formError, setFormError] = useState("");
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
 
   const colors = THEMES[terminalTheme];
@@ -403,21 +404,28 @@ export const AIChatbot = () => {
 
   // Intersection Observer to detect if contact section is visible
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsNearContact(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
+    let observer: IntersectionObserver | null = null;
+    let contactElement: HTMLElement | null = null;
 
-    const contactElement = document.getElementById("contact");
-    if (contactElement) {
-      observer.observe(contactElement);
-    }
+    const checkInterval = setInterval(() => {
+      contactElement = document.getElementById("contact");
+      if (contactElement) {
+        observer = new IntersectionObserver(
+          ([entry]) => {
+            setIsNearContact(entry.isIntersecting);
+          },
+          { threshold: 0.1 }
+        );
+        observer.observe(contactElement);
+        clearInterval(checkInterval);
+      }
+    }, 500);
 
     return () => {
-      if (contactElement) {
+      clearInterval(checkInterval);
+      if (observer && contactElement) {
         observer.unobserve(contactElement);
+        observer.disconnect();
       }
     };
   }, []);
@@ -461,7 +469,7 @@ export const AIChatbot = () => {
           if (error) throw error;
 
           if (data && data.length > 0) {
-            const formatted = data.map((d: any) => ({
+            const formatted = data.map((d: { id: string; sender: string; message: string; created_at: string }) => ({
               id: d.id,
               sender: d.sender as "user" | "bot",
               text: d.message,
@@ -481,6 +489,7 @@ export const AIChatbot = () => {
     };
 
     syncHistory();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user, sessionId]);
 
   // Load message logs from local storage (Fallback/Guest)
@@ -488,7 +497,7 @@ export const AIChatbot = () => {
     const local = localStorage.getItem(`smarty_chat_logs_${sessionId}`);
     if (local) {
       try {
-        const parsed = JSON.parse(local).map((m: any) => ({
+        const parsed = (JSON.parse(local) as Array<Omit<Message, "timestamp"> & { timestamp: string }>).map((m) => ({
           ...m,
           timestamp: new Date(m.timestamp)
         }));
@@ -587,6 +596,7 @@ export const AIChatbot = () => {
   // Voice recognition speech-to-text capturer
   const toggleSpeechInput = () => {
     if (typeof window === "undefined") return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognition) {
       toast.error("Speech recognition is not supported in this browser version.");
@@ -612,12 +622,14 @@ export const AIChatbot = () => {
         toast.info("Listening... Speak clearly.");
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rec.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setInputText(prev => prev + (prev ? " " : "") + transcript);
         toast.success("Voice text added!");
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       rec.onerror = (event: any) => {
         console.error("Speech Recognition error:", event.error);
         setIsListening(false);
@@ -674,7 +686,7 @@ export const AIChatbot = () => {
       });
       if (error) throw error;
       toast.success("Requirements submitted successfully! Our team will contact you.");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Supabase Submission Error:", err);
       toast.success("Requirements logged successfully (Demo Submission).");
     }

@@ -405,15 +405,7 @@ const StrategyVisualizer = ({ theme }: VisualizerProps) => {
   );
 };
 
-// ─── Step 3: Dev Compiler Terminal with AI Agent sidecar ───
-const DevelopmentVisualizer = ({ theme }: VisualizerProps) => {
-  const isLight = theme === "light";
-  const [codeText, setCodeText] = useState("");
-  const [terminalLines, setTerminalLines] = useState<string[]>([]);
-  const [compileProgress, setCompileProgress] = useState(0);
-  const [isDone, setIsDone] = useState(false);
-
-  const codeScript = [
+const CODE_SCRIPT = [
     "# model_fine_tune.py",
     "from peft import LoraConfig, get_peft_model",
     "peft_config = LoraConfig(",
@@ -426,7 +418,7 @@ const DevelopmentVisualizer = ({ theme }: VisualizerProps) => {
     "print('LoRA adapter injection: SUCCESS')",
   ];
 
-  const terminalOutput = [
+  const TERMINAL_OUTPUT = [
     "$ python src/train.py",
     "Loading weights: Meta-Llama-3-8B...",
     "Injecting LoRA adapters... SUCCESS",
@@ -440,6 +432,14 @@ const DevelopmentVisualizer = ({ theme }: VisualizerProps) => {
     "✔ All unit tests passed. [COMPILED]"
   ];
 
+// ─── Step 3: Dev Compiler Terminal with AI Agent sidecar ───
+const DevelopmentVisualizer = ({ theme }: VisualizerProps) => {
+  const isLight = theme === "light";
+  const [codeText, setCodeText] = useState("");
+  const [terminalLines, setTerminalLines] = useState<string[]>([]);
+  const [compileProgress, setCompileProgress] = useState(0);
+  const [isDone, setIsDone] = useState(false);
+
   // Code writing typewriter effect
   useEffect(() => {
     let charIndex = 0;
@@ -448,8 +448,8 @@ const DevelopmentVisualizer = ({ theme }: VisualizerProps) => {
     setCodeText("");
     
     const codeTimer = setInterval(() => {
-      if (currentLine < codeScript.length) {
-        const line = codeScript[currentLine];
+      if (currentLine < CODE_SCRIPT.length) {
+        const line = CODE_SCRIPT[currentLine];
         if (charIndex < line.length) {
           fullText += line[charIndex];
           setCodeText(fullText);
@@ -476,8 +476,8 @@ const DevelopmentVisualizer = ({ theme }: VisualizerProps) => {
 
     let lineIndex = 0;
     const logTimer = setInterval(() => {
-      if (lineIndex < terminalOutput.length) {
-        const line = terminalOutput[lineIndex];
+      if (lineIndex < TERMINAL_OUTPUT.length) {
+        const line = TERMINAL_OUTPUT[lineIndex];
         
         if (line.includes("Epoch 1")) setCompileProgress(33);
         else if (line.includes("Epoch 2")) setCompileProgress(66);

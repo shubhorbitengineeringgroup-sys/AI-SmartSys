@@ -4,22 +4,22 @@ import aiLogoDark from "@/assets/ai-smartsys-logo-dark.png";
 import { useTheme } from "@/context/ThemeContext";
 
 const quickLinks = [
-  { name: "Home",      href: "/" },
-  { name: "About",     href: "/about" },
-  { name: "Services",  href: "/services" },
-  { name: "Products",  href: "/products" },
-  { name: "Process",   href: "/process" },
-  { name: "Portfolio", href: "/portfolio" },
-  { name: "FAQ",       href: "/faq" },
-  { name: "Contact",   href: "/contact" },
+  { name: "Home",         href: "/" },
+  { name: "About",        href: "/about" },
+  { name: "Capabilities", href: "/capabilities" },
+  { name: "Products",     href: "/products" },
+  { name: "Process",      href: "/process" },
+  { name: "Portfolio",    href: "/portfolio" },
+  { name: "FAQ",          href: "/faq" },
+  { name: "Contact",      href: "/contact" },
 ];
 const serviceLinks = [
-  { name: "AI Development", ref: "customised-software" },
-  { name: "Web Development", ref: "website-development" },
-  { name: "Automation", ref: "scada" },
-  { name: "Chatbot Development", ref: "chatbot" },
-  { name: "Data Analytics", ref: "seo" },
-  { name: "Mobile Apps", ref: "app-development" }
+  { name: "AI Development", path: "/capabilities#ai-development" },
+  { name: "Web Development", path: "/capabilities#web-development" },
+  { name: "Automation", path: "/capabilities#automation" },
+  { name: "Chatbot Development", path: "/capabilities#chatbot-development" },
+  { name: "Data Analytics", path: "/capabilities#data-analytics" },
+  { name: "Mobile Apps", path: "/capabilities#mobile-apps" }
 ];
 
 const Footer = () => {
@@ -70,8 +70,8 @@ const Footer = () => {
           <h4 className="font-heading font-semibold mb-6 text-sm uppercase tracking-widest text-foreground">Capabilities</h4>
           <ul className="space-y-4">
             {serviceLinks.map((link) => (
-              <li key={link.ref}>
-                <a href={`#${link.ref}`} className="text-muted-foreground text-sm hover:text-accent transition-colors duration-300">
+              <li key={link.path}>
+                <a href={link.path} className="text-muted-foreground text-sm hover:text-accent transition-colors duration-300">
                   {link.name}
                 </a>
               </li>

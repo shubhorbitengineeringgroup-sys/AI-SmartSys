@@ -163,8 +163,9 @@ export const AdminInquiries = () => {
 
       setChatSessions(processedSessions);
       setIsDemoMode(false);
-    } catch (err: any) {
-      console.warn("Could not load from Supabase database. Using local mock dataset.", err.message);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      console.warn("Could not load from Supabase database. Using local mock dataset.", errorMsg);
       // Fallback to Mock Data
       setSubmissions(MOCK_SUBMISSIONS);
       setChatSessions(MOCK_CHAT_SESSIONS);
@@ -196,8 +197,9 @@ export const AdminInquiries = () => {
       if (error) throw error;
       toast.success(`Inquiry status updated to ${nextStatus}!`);
       fetchData();
-    } catch (err: any) {
-      toast.error("Could not update status: " + err.message);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      toast.error("Could not update status: " + errorMsg);
     }
   };
 
@@ -216,8 +218,9 @@ export const AdminInquiries = () => {
       if (error) throw error;
       toast.success("Submission deleted!");
       fetchData();
-    } catch (err: any) {
-      toast.error("Could not delete: " + err.message);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err);
+      toast.error("Could not delete: " + errorMsg);
     }
   };
 

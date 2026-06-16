@@ -20,7 +20,7 @@ const ADMIN_EMAILS = [
 const Admin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<import("@supabase/supabase-js").Session | null>(null);
   const [isChecking, setIsChecking] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -56,9 +56,10 @@ const Admin = () => {
       if (error) throw error;
 
       toast.success("Admin authenticated successfully!");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Admin Login Error:", err);
-      toast.error(err.message || "Invalid credentials.");
+      const errorVal = err as Error;
+      toast.error(errorVal.message || "Invalid credentials.");
     } finally {
       setIsSubmitting(false);
     }

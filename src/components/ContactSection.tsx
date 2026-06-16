@@ -155,6 +155,7 @@ const ContactSection = () => {
         ]);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isConversational, messages.length, chatLanguage, chatTone]);
 
   // Scroll to bottom of chat
@@ -337,33 +338,33 @@ const ContactSection = () => {
           {/* Left Column: Dual Form Box */}
           <div className="premium-card flex flex-col h-[590px] sm:h-[620px] lg:h-[660px] overflow-hidden hover:translate-y-0 hover:scale-100">
             {/* Tab Switcher at the top of the card */}
-            <div className="flex p-1 bg-slate-100/50 dark:bg-slate-950/80 rounded-xl border border-slate-200/50 dark:border-white/5 mx-6 mt-6 mb-2 z-10">
+            <div className="grid grid-cols-2 p-1 bg-slate-100/50 dark:bg-slate-950/80 rounded-xl border border-slate-200/50 dark:border-white/5 mx-6 mt-6 mb-2 z-10">
               <button
                 type="button"
                 onClick={() => {
                   setIsConversational(true);
                   resetChat();
                 }}
-                className={`flex-1 py-2 text-xs font-mono font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                className={`w-full py-2 text-xs font-mono font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
                   isConversational
                     ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <MessageSquare size={13} />
-                <span>AI Chat Agent</span>
+                <MessageSquare size={13} className="shrink-0" />
+                <span className="whitespace-nowrap">AI Chat Agent</span>
               </button>
               <button
                 type="button"
                 onClick={() => setIsConversational(false)}
-                className={`flex-1 py-2 text-xs font-mono font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
+                className={`w-full py-2 text-xs font-mono font-medium rounded-lg transition-all duration-300 flex items-center justify-center gap-1.5 ${
                   !isConversational
                     ? "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-md shadow-indigo-500/20"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
               >
-                <Send size={12} />
-                <span>Classic Form</span>
+                <Send size={12} className="shrink-0" />
+                <span className="whitespace-nowrap">Classic Form</span>
               </button>
             </div>
 
@@ -429,7 +430,7 @@ const ContactSection = () => {
               <div className="px-6 pb-6 flex flex-col flex-grow justify-between overflow-hidden">
                 {/* Header */}
                 <div className="flex justify-between items-center border-b border-border/50 pb-2 mb-3 select-none">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex items-center gap-2 shrink-0">
                     <AICoreStatus />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-foreground/80 tracking-wide font-mono hidden sm:inline">SmartSys AI Onboarding</span>
@@ -878,13 +879,13 @@ const ContactSection = () => {
                 { icon: Phone, label: "Phone", value: "+91 70241 28029", href: "tel:+917024128029" },
                 { icon: Mail, label: "Email", value: "vijaytiwari@orbitengineerings.com", href: "mailto:vijaytiwari@orbitengineerings.com" },
               ].map(({ icon: Icon, label, value, href }) => (
-                <a key={label} href={href} className="flex items-center gap-4 text-muted-foreground hover:text-foreground transition-colors group">
-                  <div className="w-14 h-14 rounded-2xl glass flex items-center justify-center text-primary group-hover:bg-gradient-button group-hover:text-secondary-foreground transition-all duration-500 border border-white/5 group-hover:border-primary/30 animate-pulse">
+                <a key={label} href={href} className="flex items-center gap-4 text-muted-foreground hover:text-foreground transition-colors group w-full max-w-full overflow-hidden">
+                  <div className="w-14 h-14 rounded-2xl glass flex items-center justify-center text-primary group-hover:bg-gradient-button group-hover:text-secondary-foreground transition-all duration-500 border border-white/5 group-hover:border-primary/30 animate-pulse shrink-0">
                     <Icon size={22} />
                   </div>
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-xs text-muted-foreground uppercase tracking-widest font-mono font-medium">{label}</p>
-                    <p className="font-medium text-foreground text-sm">{value}</p>
+                    <p className="font-medium text-foreground text-sm break-all sm:break-normal">{value}</p>
                   </div>
                 </a>
               ))}
